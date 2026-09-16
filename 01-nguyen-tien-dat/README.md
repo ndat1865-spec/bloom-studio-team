@@ -11,15 +11,15 @@ Không copy `node_modules`, `target`, file môi trường hay code của bản h
 
 ## Chạy
 
-Mở **Command Prompt hoặc terminal PowerShell** tại thư mục chứa `01-nguyen-tien-dat`.
+Mở **Command Prompt hoặc terminal PowerShell** tại thư mục gốc repo `bloom-studio-team`.
 Với PowerShell, bỏ qua dòng bắt đầu bằng `REM` (đó chỉ là chú thích cho Command Prompt).
 
 ```bat
-cd 01-nguyen-tien-dat\auth-service
+cd auth-service
 .\mvnw.cmd spring-boot:run
 
 REM Mo terminal thu hai tai thu muc repo:
-cd 01-nguyen-tien-dat\api-gateway
+cd api-gateway
 .\mvnw.cmd spring-boot:run
 ```
 
@@ -49,22 +49,10 @@ Khóa JWT sinh ngẫu nhiên khi chạy Auth, chỉ nằm trong RAM. Khởi đ�
 - Phân quyền CUSTOMER/ADMIN, quản lý API Key.
 - Tích hợp các phần, Docker, kiểm thử đầu-cuối.
 
-## Commit lên repo chung
+## Đóng góp
 
-1. Đạt tạo **một repo GitHub chung rỗng**, thêm 4 bạn làm collaborator.
-2. Mỗi bạn clone repo bằng tài khoản GitHub của mình.
-3. Copy **nguyên thư mục `01-nguyen-tien-dat`** vào gốc repo vừa clone.
-4. Mở terminal ở gốc repo. Kiểm tra `git config user.name` và `git config user.email` là thông tin của chính bạn.
-5. Chạy thử code rồi dùng các lệnh dưới đây. Không cần `git init` trong thư mục con.
+Phụ trách: **Nguyễn Tiến Đạt**. Code hiện nằm ở `auth-service/` và `api-gateway/` tại gốc repo; thư mục `01-nguyen-tien-dat/` chỉ còn tài liệu và file cấu hình bỏ qua Git cũ.
 
-```bat
-git switch -c codex/01-nguyen-tien-dat
-git add 01-nguyen-tien-dat/
-git diff --cached --stat
-git commit -m "feat(auth-gateway): khoi tao dang nhap JWT va dinh tuyen"
-git push -u origin codex/01-nguyen-tien-dat
-```
+Từ gốc repo, tạo nhánh `feat/auth-<ten-chuc-nang>` hoặc `feat/gateway-<ten-chuc-nang>`, sửa đúng service, chạy thử rồi commit và tạo pull request vào `main`.
 
-Trên GitHub tạo pull request vào nhánh chung; Đạt kiểm tra và ghép.
-Các lệnh này chỉ stage phần của bạn. Không dùng `git add .` nếu repo còn phần của người khác.
-Commit đầu ghi đúng đây là khung khởi tạo; những commit sau mô tả thay đổi thực tế.
+[Quay lại README chung](../README.md).
