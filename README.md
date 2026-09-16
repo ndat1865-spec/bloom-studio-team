@@ -8,7 +8,7 @@
 |---|---|---|
 | Nguyễn Tiến Đạt | Auth Service, API Gateway, bảo mật và tích hợp | Đã có khung Auth và Gateway |
 | Hoàng Tuấn Anh | Product Service | Đã có khung Product Service |
-| Lê Ngọc Bình Minh | Order Service | Chưa có code trên `main` tại lần cập nhật tài liệu này |
+| Lê Ngọc Bình Minh | Order Service |  Đã có khung Order Service |
 | Trần Thị Mỹ Ngân | Giao diện khách hàng | Chưa có code trên `main` tại lần cập nhật tài liệu này |
 | Nguyễn Ngọc Minh Thu | Giao diện quản trị | Chưa có code trên `main` tại lần cập nhật tài liệu này |
 
