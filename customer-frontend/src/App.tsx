@@ -1,71 +1,143 @@
-import { useEffect, useState } from "react";
-import { demoProducts, money, request, type Product, type Quote } from "./api";
+import { Suspense, lazy, useEffect } from "react";
+import { Outlet, Route, Routes, useLocation } from "react-router-dom";
+import { SiteHeader } from "@/components/site/SiteHeader";
+import { SiteFooter } from "@/components/site/SiteFooter";
+import { RequireAuth } from "@/components/RequireAuth";
+import { Spinner } from "@/components/ui/feedback";
+import HomePage from "@/pages/HomePage";
 
-export default function App() {
-  const [live, setLive] = useState(false);
-  const [products, setProducts] = useState<Product[]>(demoProducts);
-  const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<Product | null>(demoProducts[0]);
-  const [quantity, setQuantity] = useState(1);
-  const [quote, setQuote] = useState<Quote | null>(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [quoting, setQuoting] = useState(false);
-  const [reload, setReload] = useState(0);
+const LoginPage = lazy(() => import("@/pages/LoginPage"));
+const RegisterPage = lazy(() => import("@/pages/RegisterPage"));
+const ProductsPage = lazy(() => import("@/pages/ProductsPage"));
+const ProductDetailPage = lazy(() => import("@/pages/ProductDetailPage"));
+const CartPage = lazy(() => import("@/pages/CartPage"));
+const CheckoutPage = lazy(() => import("@/pages/CheckoutPage"));
+const OrderDetailPage = lazy(() => import("@/pages/OrderDetailPage"));
+const AccountProfilePage = lazy(() => import("@/pages/AccountProfilePage"));
+const AccountAddressPage = lazy(() => import("@/pages/AccountAddressPage"));
+const AccountOrdersPage = lazy(() => import("@/pages/AccountOrdersPage"));
+const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 
+/** Doi route thi cuon len dau trang (tru khi duong dan co hash). */
+function ScrollToTop() {
+  const { pathname, hash } = useLocation();
   useEffect(() => {
-    let active = true;
-    setError(""); setQuote(null); setSelected(null); setProducts([]);
-    if (!live) { setProducts(demoProducts); setSelected(demoProducts[0]); setLoading(false); return; }
-    setLoading(true);
-    request<Product[]>("/products")
-      .then(data => { if (active) { setProducts(data); setSelected(data[0] ?? null); } })
-      .catch(err => { if (active) setError(err.message); })
-      .finally(() => { if (active) setLoading(false); });
-    return () => { active = false; };
-  }, [live, reload]);
-
-  async function preview() {
-    if (!selected) return;
-    setError(""); setQuote(null);
-    if (!Number.isInteger(quantity) || quantity < 1 || quantity > Math.min(99, selected.stockQuantity)) {
-      setError("Số lượng phải là số nguyên từ 1 đến " + Math.min(99, selected.stockQuantity)); return;
-    }
-    setQuoting(true);
-    try {
-      const result = live
-        ? await request<Quote>("/orders/preview", { method: "POST", body: JSON.stringify({ productId: selected.id, quantity }) })
-        : { productId: selected.id, productName: selected.name, quantity, unitPrice: selected.price, total: selected.price * quantity, note: "Tính thử bằng dữ liệu demo trên trình duyệt." };
-      setQuote(result);
-    } catch (err) { setError((err as Error).message); }
-    finally { setQuoting(false); }
-  }
-
-  const filtered = products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
-  return <>
-    <header><div><div className="brand">bloom studio.</div><p>Hoa cho những ngày đáng nhớ</p></div>
-      <label>Nguồn dữ liệu<select aria-label="Nguồn dữ liệu" value={live ? "api" : "demo"} disabled={quoting} onChange={e => setLive(e.target.value === "api")}><option value="demo">Demo · chạy độc lập</option><option value="api">API · kết nối Gateway</option></select></label>
-    </header>
-    <main>
-      <span className="eyebrow">Bộ sưu tập đầu tiên</span><h1>Một chút hoa, một ngày đẹp.</h1>
-      <p className="muted">Chọn một mẫu hoa và xem giá dự kiến cho món quà của bạn.</p>
-      <div className="banner">{live ? "Đang dùng API thật qua Gateway :18080." : "Chế độ demo: dữ liệu mẫu có sẵn, không cần chạy backend."} Bản khởi đầu chỉ xem sản phẩm và tính giá; chưa gửi đơn hàng.</div>
-      <div className="toolbar"><label>Tìm hoa<input placeholder="Ví dụ: hong" value={search} onChange={e => setSearch(e.target.value)} /></label><button disabled={loading || quoting} onClick={() => setReload(n => n + 1)}>Tải lại</button></div>
-      {error && <div role="alert" className="error">{error}</div>}
-      {loading && <p role="status">Đang tải sản phẩm…</p>}
-      <div className="layout">
-        <section className="cards" aria-label="Sản phẩm">
-          {filtered.map((p, i) => <article className="card" key={p.id}><div className="flower" aria-hidden="true">{["🌹", "🌻", "🌿"][i % 3]}</div><h3>{p.name}</h3><p className="price">{money(p.price)}</p><p className="muted">Còn {p.stockQuantity} sản phẩm</p><button disabled={quoting} onClick={() => { setSelected(p); setQuantity(1); setQuote(null); setError(""); }}>Chọn hoa</button></article>)}
-          {!loading && filtered.length === 0 && <p>Không có sản phẩm phù hợp.</p>}
-        </section>
-        <aside className="panel"><h2>Tính giá dự kiến</h2><p>{selected?.name ?? "Hãy chọn một sản phẩm"}</p>
-          <label>Số lượng<input type="number" min="1" max={Math.min(99, selected?.stockQuantity ?? 99)} value={quantity} disabled={quoting} onChange={e => { setQuantity(Number(e.target.value)); setQuote(null); }} /></label>
-          <button disabled={!selected || quoting || loading} onClick={preview}>{quoting ? "Đang tính…" : "Tính giá"}</button>
-          {quote && <div role="status"><p>{quote.quantity} × {money(quote.unitPrice)}</p><p className="total">{money(quote.total)}</p><p className="muted">{quote.note}</p></div>}
-        </aside>
-      </div>
-      <footer>Phụ trách: Trần Thị Mỹ Ngân · Giai đoạn 1: giao diện khách hàng, danh sách và tính giá.</footer>
-    </main>
-  </>;
+    if (hash) return;
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [pathname, hash]);
+  return null;
 }
 
+/** Khung tran man hinh cho cac trang xac thuc: chi co skip link + <main>. */
+function BareLayout() {
+  return (
+    <>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:border focus:border-accent focus:bg-background focus:px-4 focus:py-3 focus:text-sm focus:text-accent"
+      >
+        Bỏ qua tới nội dung
+      </a>
+      <main id="main" tabIndex={-1}>
+        <Suspense
+          fallback={
+            <div className="flex min-h-svh items-center justify-center">
+              <Spinner label="Đang tải trang…" />
+            </div>
+          }
+        >
+          <Outlet />
+        </Suspense>
+      </main>
+    </>
+  );
+}
+
+function Layout() {
+  return (
+    <>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:border focus:border-accent focus:bg-background focus:px-4 focus:py-3 focus:text-sm focus:text-accent"
+      >
+        Bỏ qua tới nội dung
+      </a>
+
+      <SiteHeader />
+
+      <main id="main" tabIndex={-1}>
+        <Suspense
+          fallback={
+            <div className="shell flex min-h-[50svh] items-center justify-center">
+              <Spinner label="Đang tải trang…" />
+            </div>
+          }
+        >
+          <Outlet />
+        </Suspense>
+      </main>
+
+      <SiteFooter />
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <>
+      <ScrollToTop />
+      <Routes>
+        {/*
+          /login va /register dung khung toan man hinh (AuthLayout) nen nam NGOAI Layout
+          — khong co navbar va footer cua site, dung nhu mockup.
+        */}
+        <Route element={<BareLayout />}>
+          <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<RegisterPage />} />
+        </Route>
+
+        <Route element={<Layout />}>
+          <Route index element={<HomePage />} />
+
+          {/* CUSTOMER va ADMIN deu xem duoc danh muc hoa; khach chua dang nhap van xem duoc */}
+          <Route path="products" element={<ProductsPage />} />
+          <Route path="products/:id" element={<ProductDetailPage />} />
+
+          {/* Phan mo rong ngoai SOS01-SOS10: gio hang, thanh toan, don hang */}
+          <Route path="cart" element={<CartPage />} />
+          <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="orders/:id" element={<OrderDetailPage />} />
+
+          {/* Khu vuc tai khoan — ca ADMIN lan CUSTOMER deu vao duoc */}
+          <Route
+            path="tai-khoan"
+            element={
+              <RequireAuth>
+                <AccountProfilePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="tai-khoan/dia-chi"
+            element={
+              <RequireAuth>
+                <AccountAddressPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="tai-khoan/don-hang"
+            element={
+              <RequireAuth>
+                <AccountOrdersPage />
+              </RequireAuth>
+            }
+          />
+
+          {/* Cac trang /admin/... nam o admin-frontend (cong 5174) */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Route>
+      </Routes>
+    </>
+  );
+}
