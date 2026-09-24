@@ -1,55 +1,49 @@
-# Hoàng Tuấn Anh — Product Service
+# product-service — Hoa, danh mục, tồn kho
 
-Đây là **bộ khởi đầu giai đoạn 1** được chuẩn bị chung cho nhóm, có thể chạy và commit ngay.
-Người phụ trách đọc, chạy thử và tiếp tục phát triển phần này.
+Phụ trách: **Hoàng Tuấn Anh** · Cổng **8082** · CSDL `bloom_product`
 
-## Chuẩn bị
-
-Cài **JDK 17**, đặt JAVA_HOME trỏ vào thư mục JDK 17. Không cần cài Maven vì đã có Maven Wrapper.
-Lần chạy đầu cần Internet để tải thư viện. Không cần MySQL/Docker.
-Không copy `node_modules`, `target`, file môi trường hay code của bản hoàn chỉnh vào gói này.
+Quản lý sản phẩm (hoa) và danh mục: tìm kiếm, phân trang, thêm/sửa/xoá, tải ảnh. Giữ số
+lượng tồn kho và cung cấp API nội bộ để `order-service` trừ / hoàn tồn kho khi đặt hàng.
 
 ## Chạy
-
-Mở **Command Prompt hoặc terminal PowerShell** tại thư mục gốc repo `bloom-studio-team`.
-Với PowerShell, bỏ qua dòng bắt đầu bằng `REM` (đó chỉ là chú thích cho Command Prompt).
 
 ```bat
 cd product-service
 .\mvnw.cmd spring-boot:run
 ```
 
-- http://localhost:18082/health
-- http://localhost:18082/products
-- http://localhost:18082/products/1
-- http://localhost:18082/products?name=hong
-- http://localhost:18082/categories
+Cần MySQL, CSDL `bloom_product` và biến `DB_PASSWORD`. Bảng `products` còn rỗng thì
+`DataSeeder` tự nạp 3 danh mục và 20 sản phẩm từ `src/main/resources/seed/danh-muc-hoa.txt`.
 
-Dừng bằng Ctrl+C. Nếu cổng đã bận, dừng đúng tiến trình đang dùng cổng đó hoặc bản starter đã mở trước.
-Có thể đổi cổng bằng biến `PORT`; khi ghép nhóm cần sửa URI tương ứng ở Gateway.
+Thử nhanh: http://localhost:8082/products · http://localhost:8082/categories
 
-## Đã có
+## Endpoint (qua Gateway thêm tiền tố `/api`)
 
-- 3 sản phẩm và 3 danh mục mẫu.
-- API danh sách, tìm theo tên và chi tiết.
-- Giá dùng BigDecimal; có tồn kho mẫu.
-- Sản phẩm không tồn tại trả 404.
+| Method | Đường dẫn | Quyền |
+|---|---|---|
+| GET | `/products`, `/products/{id}`, `/categories`, `/categories/{id}/products` | Công khai |
+| POST, PUT, DELETE | `/products/**`, `/categories/**` | ADMIN |
+| POST | `/products/{id}/upload-image` | ADMIN |
+| PATCH | `/internal/products/{id}/reserve-stock`, `/release-stock` | Chỉ `order-service` gọi |
 
-## Giới hạn hiện tại
+Danh sách đầy đủ: [docs/blueprint-api.md](../docs/blueprint-api.md).
 
-Bản đầu chỉ đọc dữ liệu trong bộ nhớ. Chưa có thêm/sửa/xóa, upload ảnh, giữ hoặc hoàn tồn kho. Chạy độc lập không cần Auth, Order hay database.
+## Ảnh
 
-## Việc làm tiếp
+- Ảnh mẫu: `src/main/resources/static/uploads/seed/` — nằm trong classpath, **có** commit.
+- Ảnh admin tải lên lúc chạy: thư mục `uploads/` trên đĩa (`UPLOAD_DIR`) — **không** commit.
+- `imageUrl` luôn là đường dẫn web `uploads/<tên file>`, không bao giờ là đường dẫn trên đĩa.
+- `WebConfig` phải khai handler `/uploads/seed/**` **trước** handler `/uploads/**`, nếu
+  không ảnh mẫu trả 404.
 
-- Entity/Repository và MySQL.
-- CRUD sản phẩm/danh mục, upload ảnh, phân trang.
-- API giữ/hoàn tồn kho để Bình Minh gọi.
-- Bảo vệ thao tác ghi bằng JWT/ADMIN, phối hợp với Đạt.
+## Kiểm thử
 
-## Đóng góp
+```bat
+.\mvnw.cmd test
+```
 
-Phụ trách: **Hoàng Tuấn Anh**. Từ thư mục gốc repo, tạo nhánh `feat/product-<ten-chuc-nang>`, sửa phần `product-service/`, chạy thử rồi commit và tạo pull request vào `main`.
+`ProductWriteBindingTests` giữ lỗi từng làm hỏng toàn bộ trang quản lý hoa: một
+`@RequestParam(required = false)` sót lại đứng trước `@RequestBody` khiến body luôn `null`.
+`SeedImageTests`, `SeedCatalogueTests`, `FileStorageServiceTests` giữ phần ảnh và dữ liệu mẫu.
 
-Hướng dẫn riêng của Product Service nằm trong file này. README ở gốc repo là giới thiệu chung của nhóm.
-
-[Quay lại README chung](../README.md).
+[Quay lại README chung](../README.md)
