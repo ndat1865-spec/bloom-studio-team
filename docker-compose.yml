@@ -1,0 +1,125 @@
+# Trien khai ca he thong bang mot lenh: docker compose up --build
+#
+# Nguyen tac giu nguyen khi chay bang Docker: MOI service mot CSDL rieng, khong
+# service nao doc CSDL cua service khac. Vi vay co ba container MySQL chu khong
+# phai mot container ba schema — dung ranh gioi da chot o thiet-ke-bien-gioi-service.md.
+#
+# Khac biet duy nhat so voi chay tay: dia chi khong con la localhost ma la TEN
+# SERVICE trong mang cua Compose. Ca ba cho do deu da tach san ra bien moi truong
+# (AUTH_SERVICE_URI, PRODUCT_SERVICE_URI, ORDER_SERVICE_URI, PRODUCT_SERVICE_URL,
+# DB_HOST) nen khong phai sua dong ma nao.
+
+name: bloom
+
+services:
+  # ---------- CSDL, moi service mot cai ----------
+  auth-db:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: bloom_auth
+    volumes:
+      - auth-db-data:/var/lib/mysql
+    healthcheck:
+      # Cac service phai doi CSDL san sang that su. Khong co buoc nay thi Spring
+      # khoi dong truoc, khong ket noi duoc va container chet ngay.
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${DB_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  product-db:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: bloom_product
+    volumes:
+      - product-db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${DB_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  order-db:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: bloom_order
+    volumes:
+      - order-db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${DB_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  # ---------- Cac service ----------
+  auth-service:
+    build: ./auth-service
+    environment:
+      DB_HOST: auth-db
+      DB_PASSWORD: ${DB_PASSWORD}
+      # Phai GIONG HET o ca ba service backend, neu khong token ky o day se bi
+      # product-service va order-service tu choi.
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      auth-db:
+        condition: service_healthy
+
+  product-service:
+    build: ./product-service
+    environment:
+      DB_HOST: product-db
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      # Anh tai len luc chay phai ra volume, neu khong xoa container la mat anh.
+      # Anh seed nam trong classpath (static/uploads/seed) nen khong lien quan.
+      UPLOAD_DIR: /var/bloom/uploads
+    volumes:
+      - product-uploads:/var/bloom/uploads
+    depends_on:
+      product-db:
+        condition: service_healthy
+
+  order-service:
+    build: ./order-service
+    environment:
+      DB_HOST: order-db
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      PRODUCT_SERVICE_URL: http://product-service:8082
+    depends_on:
+      order-db:
+        condition: service_healthy
+      product-service:
+        condition: service_started
+
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      # Cong duy nhat lo ra ngoai. Ba service kia chi goi duoc tu trong mang
+      # noi bo cua Compose — dung tinh than "Gateway la diem vao duy nhat",
+      # chat hon ca khi chay tay tren may that.
+      - "8080:8080"
+    environment:
+      AUTH_SERVICE_URI: http://auth-service:8081
+      PRODUCT_SERVICE_URI: http://product-service:8082
+      ORDER_SERVICE_URI: http://order-service:8083
+      PARTNER_KEY_CACHE_TTL: ${PARTNER_KEY_CACHE_TTL:-60}
+    depends_on:
+      auth-service:
+        condition: service_started
+      product-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+
+volumes:
+  auth-db-data:
+  product-db-data:
+  order-db-data:
+  product-uploads:
