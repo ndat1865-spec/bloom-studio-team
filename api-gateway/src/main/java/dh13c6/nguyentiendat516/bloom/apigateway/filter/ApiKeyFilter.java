@@ -1,6 +1,7 @@
 package dh13c6.nguyentiendat516.bloom.apigateway.filter;
 
 import dh13c6.nguyentiendat516.bloom.apigateway.client.ApiKeyValidationClient;
+import dh13c6.nguyentiendat516.bloom.apigateway.ratelimit.PartnerRateLimiter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
@@ -38,9 +39,11 @@ public class ApiKeyFilter implements GlobalFilter, Ordered {
     private static final String PARTNER_HEADER = "X-Partner-Name";
 
     private final ApiKeyValidationClient validationClient;
+    private final PartnerRateLimiter rateLimiter;
 
-    public ApiKeyFilter(ApiKeyValidationClient validationClient) {
+    public ApiKeyFilter(ApiKeyValidationClient validationClient, PartnerRateLimiter rateLimiter) {
         this.validationClient = validationClient;
+        this.rateLimiter = rateLimiter;
     }
 
     @Override
@@ -73,6 +76,20 @@ public class ApiKeyFilter implements GlobalFilter, Ordered {
                         // chuoi nao tung la key that.
                         log.warn("Tu choi API Key cho {}: {}", path, result.reason());
                         return reject(cleaned, HttpStatus.FORBIDDEN, "API Key không hợp lệ");
+                    }
+                    // Han muc rieng cua khoa nay. Kiem SAU khi khoa hop le: khoa sai khong
+                    // duoc tao xo dem, tranh bi ban khoa rac lam phinh bo nho.
+                    PartnerRateLimiter.Decision decision = rateLimiter.tryConsume(result.keyId(),
+                            result.rateLimitPerMinute());
+                    var headers = cleaned.getResponse().getHeaders();
+                    headers.set("X-RateLimit-Limit", String.valueOf(decision.limit()));
+                    headers.set("X-RateLimit-Remaining", String.valueOf(decision.remaining()));
+                    if (!decision.allowed()) {
+                        headers.set("Retry-After", String.valueOf(decision.retryAfterSeconds()));
+                        log.warn("Khoa cua {} vuot {} request/phut", result.ownerName(), decision.limit());
+                        return reject(cleaned, HttpStatus.TOO_MANY_REQUESTS, "Vượt giới hạn "
+                                + decision.limit() + " request/phút của khoá này, thử lại sau "
+                                + decision.retryAfterSeconds() + " giây");
                     }
                     ServerWebExchange identified = cleaned.mutate()
                             .request(r -> r.headers(h -> h.set(PARTNER_HEADER, result.ownerName())))

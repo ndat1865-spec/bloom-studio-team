@@ -41,6 +41,8 @@ public class SecurityConfig {
                     .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD).permitAll()
                     // Cong khai: day la noi CAP token, chua co token de ma kiem tra
                     .requestMatchers("/auth/login", "/auth/register").permitAll()
+                    // Dang nhap bang Google: ID token Google thay cho mat khau
+                    .requestMatchers("/auth/google", "/auth/google/config").permitAll()
                     // API noi bo cho api-gateway hoi ve API Key
                     .requestMatchers("/internal/**").permitAll()
                     // Quan tri tai khoan va API Key doi tac: chi ADMIN

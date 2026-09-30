@@ -22,7 +22,8 @@ public record ApiKeyResponse(
         boolean usable,
         Instant createdAt,
         Instant expiresAt,
-        Instant lastUsedAt
+        Instant lastUsedAt,
+        int rateLimitPerMinute
 ) {
 
     public static ApiKeyResponse from(ApiKey k) {
@@ -35,6 +36,7 @@ public record ApiKeyResponse(
                 k.isUsable(Instant.now()),
                 k.getCreatedAt(),
                 k.getExpiresAt(),
-                k.getLastUsedAt());
+                k.getLastUsedAt(),
+                k.effectiveRateLimit());
     }
 }

@@ -3,6 +3,7 @@ package dh13c6.nguyentiendat516.bloom.authservice.controller;
 import dh13c6.nguyentiendat516.bloom.authservice.entity.User;
 import dh13c6.nguyentiendat516.bloom.authservice.exception.GlobalExceptionHandler;
 import dh13c6.nguyentiendat516.bloom.authservice.repository.UserRepository;
+import dh13c6.nguyentiendat516.bloom.authservice.security.GoogleTokenVerifier;
 import dh13c6.nguyentiendat516.bloom.authservice.security.JwtUtil;
 import dh13c6.nguyentiendat516.bloom.authservice.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +30,8 @@ class AuthLoginTests {
     void setUp() {
         users = mock(UserRepository.class);
         passwords = new BCryptPasswordEncoder();
-        AuthService service = new AuthService(users, passwords, mock(JwtUtil.class));
+        AuthService service = new AuthService(users, passwords, mock(JwtUtil.class),
+                new GoogleTokenVerifier(""));
         mvc = MockMvcBuilders.standaloneSetup(new AuthController(service))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();

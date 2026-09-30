@@ -67,6 +67,8 @@ public class ApiKeyService {
         if (request.daysValid() != null) {
             key.setExpiresAt(Instant.now().plus(Duration.ofDays(request.daysValid())));
         }
+        key.setRateLimitPerMinute(request.rateLimitPerMinute() == null
+                ? ApiKey.DEFAULT_RATE_LIMIT : request.rateLimitPerMinute());
 
         return ApiKeyCreatedResponse.of(rawKey, ApiKeyResponse.from(apiKeyRepository.save(key)));
     }
@@ -78,6 +80,17 @@ public class ApiKeyService {
             throw new ConflictException("Khoá này đã bị thu hồi trước đó");
         }
         key.setStatus(ApiKey.Status.REVOKED);
+        return ApiKeyResponse.from(apiKeyRepository.save(key));
+    }
+
+    /**
+     * Doi han muc cua mot khoa. Gateway nho ket qua kiem tra khoa trong partner.cache-ttl-seconds
+     * giay, nen han muc moi co hieu luc cham toi da chung ay.
+     */
+    @Transactional
+    public ApiKeyResponse updateRateLimit(Long id, int rateLimitPerMinute) {
+        ApiKey key = findOrThrow(id);
+        key.setRateLimitPerMinute(rateLimitPerMinute);
         return ApiKeyResponse.from(apiKeyRepository.save(key));
     }
 
@@ -119,7 +132,8 @@ public class ApiKeyService {
 
         key.setLastUsedAt(now);
         apiKeyRepository.save(key);
-        return ApiKeyValidationResponse.valid(key.getOwnerName(), key.scopeList());
+        return ApiKeyValidationResponse.valid(key.getId(), key.getOwnerName(), key.scopeList(),
+                key.effectiveRateLimit());
     }
 
     /** Dung cho DataSeeder: nap san key demo cu de tai lieu va Postman con chay duoc. */

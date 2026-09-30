@@ -61,7 +61,28 @@ public class ApiKey {
     @Column(name = "last_used_at")
     private Instant lastUsedAt;
 
+    /**
+     * So request toi da moi phut cua rieng khoa nay, Gateway dem va chan (429).
+     * Null o khoa tao truoc khi co tinh nang -> dung DEFAULT_RATE_LIMIT.
+     */
+    @Column(name = "rate_limit_per_minute")
+    private Integer rateLimitPerMinute;
+
+    public static final int DEFAULT_RATE_LIMIT = 60;
+
     public enum Status { ACTIVE, REVOKED }
+
+    public Integer getRateLimitPerMinute() {
+        return rateLimitPerMinute;
+    }
+
+    public void setRateLimitPerMinute(Integer rateLimitPerMinute) {
+        this.rateLimitPerMinute = rateLimitPerMinute;
+    }
+
+    public int effectiveRateLimit() {
+        return rateLimitPerMinute == null ? DEFAULT_RATE_LIMIT : rateLimitPerMinute;
+    }
 
     /** Con dung duoc khong: chua thu hoi va chua het han. */
     public boolean isUsable(Instant now) {
