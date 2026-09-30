@@ -42,6 +42,8 @@ public class DataSeeder implements CommandLineRunner {
     public void run(String... args) {
         seed("admin", "admin123", User.Role.ADMIN);
         seed("john", "john123", User.Role.CUSTOMER);
+        // Nhan vien demo: xu ly don, hoa; khong tao ma giam gia, khong vao Khoa API
+        seed("staff", "staff123", User.Role.STAFF);
         apiKeyService.seedIfAbsent(LEGACY_DEMO_KEY, "Doi tac demo", List.of("products:read"));
     }
 

@@ -13,14 +13,18 @@ public record ApiKeyValidationResponse(
         boolean valid,
         String reason,
         String ownerName,
-        List<String> scopes
+        List<String> scopes,
+        // Gateway dem han muc theo keyId (khong theo ten doi tac: mot doi tac co the co nhieu khoa)
+        Long keyId,
+        int rateLimitPerMinute
 ) {
 
-    public static ApiKeyValidationResponse valid(String ownerName, List<String> scopes) {
-        return new ApiKeyValidationResponse(true, "OK", ownerName, scopes);
+    public static ApiKeyValidationResponse valid(Long keyId, String ownerName, List<String> scopes,
+                                                 int rateLimitPerMinute) {
+        return new ApiKeyValidationResponse(true, "OK", ownerName, scopes, keyId, rateLimitPerMinute);
     }
 
     public static ApiKeyValidationResponse invalid(String reason) {
-        return new ApiKeyValidationResponse(false, reason, null, List.of());
+        return new ApiKeyValidationResponse(false, reason, null, List.of(), null, 0);
     }
 }

@@ -35,6 +35,25 @@ public class AuthController {
         return authService.register(request);
     }
 
+    /** Nut "Dang nhap bang Google" co hien khong, dung Client ID nao. */
+    @GetMapping("/google/config")
+    public GoogleConfigResponse googleConfig() {
+        return authService.googleConfig();
+    }
+
+    /** Dang nhap (hoac tao tai khoan khach) bang ID token Google - tra JWT cua Bloom. */
+    @PostMapping("/google")
+    public LoginResponse googleLogin(@Valid @RequestBody GoogleLoginRequest request) {
+        return authService.googleLogin(request.credential());
+    }
+
+    /** Gan tai khoan Google vao tai khoan dang dang nhap, de lan sau dang nhap bang Google. */
+    @PostMapping("/me/google")
+    public UserResponse linkGoogle(Authentication authentication,
+                                   @Valid @RequestBody GoogleLoginRequest request) {
+        return authService.linkGoogle(currentUserId(authentication), request.credential());
+    }
+
     @GetMapping("/me")
     public UserResponse me(Authentication authentication) {
         return authService.getById(currentUserId(authentication));

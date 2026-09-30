@@ -22,6 +22,11 @@ public record CreateApiKeyRequest(
 
         @Min(value = 1, message = "Số ngày hiệu lực tối thiểu là 1")
         @Max(value = 3650, message = "Số ngày hiệu lực tối đa là 3650")
-        Integer daysValid
+        Integer daysValid,
+
+        // De trong = 60 request/phut
+        @Min(value = 1, message = "Giới hạn tối thiểu 1 request/phút")
+        @Max(value = 10000, message = "Giới hạn tối đa 10.000 request/phút")
+        Integer rateLimitPerMinute
 ) {
 }

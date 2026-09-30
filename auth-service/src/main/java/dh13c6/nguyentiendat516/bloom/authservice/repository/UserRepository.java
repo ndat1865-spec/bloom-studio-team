@@ -10,6 +10,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByUsername(String username);
 
+    Optional<User> findByGoogleSub(String googleSub);
+
     boolean existsByUsernameIgnoreCase(String username);
 
     long countByRole(User.Role role);

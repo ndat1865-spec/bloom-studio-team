@@ -27,9 +27,10 @@ public class User {
     @Column(name = "password", nullable = false, length = 255)
     private String password;
 
-    @NotNull(message = "Role phải là ADMIN hoặc CUSTOMER")
+    @NotNull(message = "Role phải là ADMIN, STAFF hoặc CUSTOMER")
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
+    // varchar chu khong de Hibernate tao ENUM cua MySQL: xem config/SchemaUpgrade
+    @Column(name = "role", nullable = false, columnDefinition = "varchar(20)")
     private Role role;
 
     // ============================================================
@@ -59,6 +60,56 @@ public class User {
     @Column(name = "city", length = 60)
     private String city;
 
+    // Dia chi mac dinh theo danh muc dia gioi GHN. Ba ma di cung nhau: co du ca ba
+    // hoac bo trong ca ba. Trang thanh toan dung de chon san Tinh / Quan / Phuong.
+    // area_label la ten ghep san ("Phuong X, Quan Y, Tinh Z") de hien thi, khong phai
+    // goi GHN chi de doi ma ra ten. Khi dat hang order-service van hoi GHN tu ma.
+
+    @Column(name = "province_id")
+    private Integer provinceId;
+
+    @Column(name = "district_id")
+    private Integer districtId;
+
+    @Size(max = 20, message = "Mã phường/xã tối đa 20 ký tự")
+    @Column(name = "ward_code", length = 20)
+    private String wardCode;
+
+    @Size(max = 200, message = "Tên khu vực tối đa 200 ký tự")
+    @Column(name = "area_label", length = 200)
+    private String areaLabel;
+
+    /**
+     * Ma tai khoan Google (claim "sub" trong ID token) - khong doi ke ca khi nguoi dung doi
+     * email Google. Null = chua lien ket. Dang nhap Google tim tai khoan theo cot nay, KHONG
+     * theo email: email trong ho so do khach tu go, chua ai xac minh.
+     */
+    @Column(name = "google_sub", length = 64, unique = true)
+    private String googleSub;
+
+    /**
+     * Anh dai dien lay tu tai khoan Google (claim "picture"), cap nhat moi lan dang nhap
+     * Google. Chi luu duong dan https cua Google, khong tai anh ve server.
+     */
+    @Column(name = "avatar_url", length = 500)
+    private String avatarUrl;
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
+
+    public String getGoogleSub() {
+        return googleSub;
+    }
+
+    public void setGoogleSub(String googleSub) {
+        this.googleSub = googleSub;
+    }
+
     /** Ten hien thi: uu tien ho ten that, chua co thi dung username. */
     @Transient
     public String getDisplayName() {
@@ -71,8 +122,12 @@ public class User {
         return phone != null && !phone.isBlank() && address != null && !address.isBlank();
     }
 
+    /**
+     * ADMIN: toan quyen. STAFF (nhan vien): xu ly don, hoa, danh muc, danh gia; chi XEM ma
+     * giam gia; khong dung toi Khoa API va tai khoan nhan vien. CUSTOMER: khach hang.
+     */
     public enum Role {
-        ADMIN, CUSTOMER
+        ADMIN, STAFF, CUSTOMER
     }
 
     public Long getId() {
@@ -145,5 +200,37 @@ public class User {
 
     public void setCity(String city) {
         this.city = city;
+    }
+
+    public Integer getProvinceId() {
+        return provinceId;
+    }
+
+    public void setProvinceId(Integer provinceId) {
+        this.provinceId = provinceId;
+    }
+
+    public Integer getDistrictId() {
+        return districtId;
+    }
+
+    public void setDistrictId(Integer districtId) {
+        this.districtId = districtId;
+    }
+
+    public String getWardCode() {
+        return wardCode;
+    }
+
+    public void setWardCode(String wardCode) {
+        this.wardCode = wardCode;
+    }
+
+    public String getAreaLabel() {
+        return areaLabel;
+    }
+
+    public void setAreaLabel(String areaLabel) {
+        this.areaLabel = areaLabel;
     }
 }

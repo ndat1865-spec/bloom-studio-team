@@ -14,7 +14,7 @@ cd auth-service
 ```
 
 Cần MySQL đang chạy, CSDL `bloom_auth` đã tạo và biến `DB_PASSWORD`. Lần đầu `DataSeeder`
-tạo `admin`/`admin123` (ADMIN), `john`/`john123` (CUSTOMER) và khoá đối tác demo.
+tạo `admin`/`admin123` (ADMIN), `john`/`john123` (CUSTOMER), `staff`/`staff123` (STAFF) và khoá đối tác demo.
 
 ## Endpoint (qua Gateway thêm tiền tố `/api`)
 
