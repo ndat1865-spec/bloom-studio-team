@@ -34,12 +34,12 @@ cửa sổ mới.
 
 ---
 
-## 1. Mở 6 cửa sổ Command Prompt
+## 1. Mở 7 cửa sổ Command Prompt
 
 Mỗi thành phần một cửa sổ riêng, **không đóng cửa sổ nào** trong lúc chạy. Các lệnh `cd`
 bên dưới tính từ thư mục chứa repo `bloom-studio-team`. Khởi động
-đúng thứ tự bên dưới: `order-service` cần `product-service` sống để trừ tồn kho, còn
-`api-gateway` cần cả ba service phía sau.
+đúng thứ tự bên dưới: `order-service` cần `product-service` sống để trừ tồn kho,
+`payment-service` cần `order-service`, còn `api-gateway` cần cả bốn service phía sau.
 
 ### Cửa sổ 1 — auth-service (cổng 8081)
 
@@ -78,6 +78,23 @@ mvnw spring-boot:run
 
 Chạy được khi thấy `Tomcat started on port 8083 (http)`.
 
+Muốn giao hàng qua GHN thì đặt `GHN_TOKEN` và `GHN_SHOP_ID` trước khi mở cửa sổ này (xem
+README chung, mục *GHN và cổng thanh toán*). Không đặt thì vẫn chạy, địa chỉ gõ tự do và phí
+giao hàng cố định.
+
+### Cửa sổ 3b — payment-service (cổng 8084)
+
+```
+cd bloom-studio-team\payment-service
+```
+```
+mvnw spring-boot:run
+```
+
+Chạy được khi thấy `Tomcat started on port 8084 (http)`. CSDL `bloom_payment` tự tạo. Cổng
+thanh toán nào chưa đặt khoá (`VNPAY_*`, `MOMO_*`, `ZALOPAY_*`) thì tự ẩn khỏi trang thanh
+toán; `GET http://localhost:8080/api/payments/methods` cho biết cổng nào đang bật.
+
 ### Cửa sổ 4 — api-gateway (cổng 8080)
 
 ```
@@ -104,6 +121,22 @@ npm run dev
 
 Chạy được khi thấy `Local: http://localhost:5173/`. `npm ci` chỉ cần lần đầu hoặc khi
 `package-lock.json` đổi.
+
+**Muốn thử ZaloPay** thì chạy `npm run dev:https` thay cho `npm run dev`, rồi mở
+`https://localhost:5173`. Trang kết quả của ZaloPay chỉ đưa khách về địa chỉ `https://`:
+gặp `http://localhost` nó chặn và đứng yên ở trang "Thanh toán thành công", bấm "Về ngay"
+cũng không đi. VNPay và MoMo không kiểm như vậy nên chạy `http` vẫn được.
+
+- Chứng chỉ là tự ký: lần đầu trình duyệt cảnh báo, bấm *Nâng cao* → *Tiếp tục truy cập
+  localhost*.
+- `PAYMENT_RETURN_URL` của payment-service phải đổi thành
+  `https://localhost:5173/payment/result` cho khớp — lệch giao thức thì cổng thanh toán đưa
+  khách về một địa chỉ không có ai nghe.
+- Gateway đã cho phép CORS từ `https://localhost:5173` và `https://127.0.0.1:5173`.
+
+Không quay về được thì tiền vẫn không mất: IPN/callback không tới được máy local, nhưng
+trang chi tiết đơn tự hỏi lại cổng thanh toán mỗi khi mở trang hoặc quay lại tab, đơn tự
+chuyển sang *Đã thanh toán*.
 
 ### Cửa sổ 6 — admin-frontend (cổng 5174)
 
@@ -148,6 +181,7 @@ token thì phải bị từ chối.
 |---|---|---|---|
 | `admin` | `admin123` | ADMIN | DataSeeder tạo tự động |
 | `john` | `john123` | CUSTOMER | DataSeeder, tài khoản test |
+| `staff` | `staff123` | STAFF | DataSeeder, nhân viên: xử lý đơn, hoa; không tạo mã giảm giá, không vào Khoá API |
 | `customer` | `bloom123` | CUSTOMER | chuyển từ CSDL cũ, có sẵn 2 đơn hàng |
 
 ---
@@ -353,7 +387,9 @@ Mỗi cửa sổ bấm `Ctrl + C`.
 
 ## 9. Cách khác: chạy bằng Docker Compose
 
-Thay cho 5 cửa sổ Command Prompt ở mục 1. Cần **Docker Desktop** đã cài và đang chạy.
+Thay cho 5 cửa sổ Command Prompt ở mục 1. Cần **Docker Desktop** đã cài và đang chạy, cấp
+**RAM từ 6 GB** trở lên (Settings → Resources). Bản tóm tắt từng bước nằm ở README, mục
+*Chạy bằng Docker*.
 
 > ✅ **Đã chạy thật ngày 15/09/2026** trên nền hoàn toàn sạch. Biên bản:
 > `docs/ket-qua-docker-2026-09-15.md`. Lần dựng đầu mất ~50 phút vì phải tải ảnh nền và
@@ -373,7 +409,14 @@ Sửa `DB_PASSWORD` trong `.env`. File này **không** được commit.
 docker compose up --build
 ```
 
-Lần đầu lâu vì phải tải ảnh nền và thư viện Maven. Xong thì mở `http://localhost:8080`.
+Lần đầu lâu vì phải tải ảnh nền và thư viện Maven. Những lần sau, không sửa code thì chỉ cần
+`docker compose up -d`. Đợi 1–2 phút rồi kiểm tra mọi container đều `running` / `healthy`:
+
+```bash
+docker compose ps
+```
+
+Sau đó bật hai frontend như cửa sổ 5 và 6 ở mục 1.
 
 Trên CSDL trắng, `product-service` tự nạp 20 sản phẩm và 3 danh mục; `auth-service` tự tạo
 `admin` / `john` cùng khoá đối tác demo. Không phải chạy script chuyển dữ liệu — script đó
@@ -394,9 +437,25 @@ một quy ước thành điều kiện kỹ thuật thật.
 
 ### Lệnh hay dùng
 
+Xem log một service:
+
 ```bash
 docker compose logs -f api-gateway
 ```
+
+Sửa code một service thì chỉ build lại service đó:
+
+```bash
+docker compose up -d --build order-service
+```
+
+Tắt, giữ nguyên dữ liệu:
+
+```bash
+docker compose stop
+```
+
+Xoá container, vẫn giữ dữ liệu:
 
 ```bash
 docker compose down
