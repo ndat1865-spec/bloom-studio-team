@@ -50,12 +50,16 @@ public class ApiKeyValidationClient {
         this.ttl = Duration.ofSeconds(cacheTtlSeconds);
     }
 
-    /** Ket qua da rut gon cho Gateway. scopes khong can giu vi auth-service da kiem tra ho. */
-    public record Result(boolean valid, String reason, String ownerName) {
+    /**
+     * Ket qua da rut gon cho Gateway. scopes khong can giu vi auth-service da kiem tra ho.
+     * keyId + rateLimitPerMinute de dem han muc theo tung khoa (PartnerRateLimiter).
+     */
+    public record Result(boolean valid, String reason, String ownerName, Long keyId, int rateLimitPerMinute) {
     }
 
     /** Body tra ve cua auth-service. Khai lai o day - hai service khong dung chung ma nguon. */
-    public record ValidationResponse(boolean valid, String reason, String ownerName) {
+    public record ValidationResponse(boolean valid, String reason, String ownerName, Long keyId,
+                                     Integer rateLimitPerMinute) {
     }
 
     public Mono<Result> validate(String rawKey, String requiredScope) {
@@ -76,7 +80,8 @@ public class ApiKeyValidationClient {
                 .retrieve()
                 .bodyToMono(ValidationResponse.class)
                 .timeout(CALL_TIMEOUT)
-                .map(body -> new Result(body.valid(), body.reason(), body.ownerName()))
+                .map(body -> new Result(body.valid(), body.reason(), body.ownerName(), body.keyId(),
+                        body.rateLimitPerMinute() == null ? 60 : body.rateLimitPerMinute()))
                 .doOnNext(result -> put(cacheKey, result));
     }
 
