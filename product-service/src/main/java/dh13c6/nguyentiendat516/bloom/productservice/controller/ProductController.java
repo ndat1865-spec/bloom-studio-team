@@ -3,6 +3,8 @@ package dh13c6.nguyentiendat516.bloom.productservice.controller;
 import dh13c6.nguyentiendat516.bloom.productservice.dto.ApiError;
 import dh13c6.nguyentiendat516.bloom.productservice.dto.PageResponse;
 import dh13c6.nguyentiendat516.bloom.productservice.dto.ProductResponse;
+import dh13c6.nguyentiendat516.bloom.productservice.entity.FlowerColor;
+import dh13c6.nguyentiendat516.bloom.productservice.entity.Occasion;
 import dh13c6.nguyentiendat516.bloom.productservice.entity.Product;
 import dh13c6.nguyentiendat516.bloom.productservice.service.ProductService;
 import jakarta.validation.Valid;
@@ -13,7 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * SOS02 -> SOS10 - API san pham. URL goc: /api/products
@@ -35,16 +39,34 @@ public class ProductController {
     // ============ DANH SACH: tim kiem + sap xep + phan trang (SOS07) ============
 
     /**
-     * GET /api/products?name=rose&categoryId=1&page=0&size=6&sort=price,desc
+     * GET /api/products?name=rose&categoryId=1&occasion=BIRTHDAY&color=RED&minPrice=50&maxPrice=100&page=0&size=6&sort=price,desc
      * GET /api/products/search?... (alias, dung chung Service - phan kiem thu SOS07 dung duong dan nay)
      */
     @GetMapping({"", "/search"})
     public ResponseEntity<PageResponse<ProductResponse>> getProducts(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Occasion occasion,
+            @RequestParam(required = false) FlowerColor color,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
             Pageable pageable) {
         return ResponseEntity.ok(PageResponse.from(
-                productService.searchProducts(name, categoryId, pageable), ProductResponse::from));
+                productService.searchProducts(name, categoryId, occasion, color, minPrice, maxPrice, pageable),
+                ProductResponse::from));
+    }
+
+    /**
+     * Danh sach dip va mau kem nhan tieng Viet, de frontend dung lam bo loc va form.
+     * Frontend khong tu khai lai danh sach nay - them dip moi chi can sua enum.
+     */
+    @GetMapping("/attributes")
+    public Map<String, List<Map<String, String>>> getAttributes() {
+        return Map.of(
+                "occasions", Arrays.stream(Occasion.values())
+                        .map(o -> Map.of("value", o.name(), "label", o.getLabel())).toList(),
+                "colors", Arrays.stream(FlowerColor.values())
+                        .map(c -> Map.of("value", c.name(), "label", c.getLabel())).toList());
     }
 
     @GetMapping("/{id}")

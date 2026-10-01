@@ -4,11 +4,12 @@ import dh13c6.nguyentiendat516.bloom.productservice.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import java.util.List;
 
 /** SOS05 + SOS07 - Repository cho Product: loc theo danh muc, tim kiem + phan trang + sap xep. */
-public interface ProductRepository extends JpaRepository<Product, Long> {
+public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
 
     // SOS05 - lay san pham theo danh muc (khong phan trang)
     List<Product> findByCategoryId(Long categoryId);

@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * ("uploads") thi duong dan dia va duong dan web tinh co giong nhau nen khong ai thay.
  * Chay bang Docker, UPLOAD_DIR la "/var/bloom/uploads" tuyet doi, imageUrl thanh
  * "/var/bloom/uploads/..." va trinh duyet tra 404. Test nay dung THU MUC TUYET DOI
- * de tach han hai khai niem do ra. Xem HANDOFF 4.17.
+ * de tach han hai khai niem do ra.
  */
 class FileStorageServiceTests {
 

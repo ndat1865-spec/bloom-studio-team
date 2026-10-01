@@ -43,12 +43,19 @@ public class SecurityConfig {
                     .requestMatchers("/internal/**").permitAll()
                     // Anh san pham: the <img> cua trinh duyet khong gui duoc header tuy chinh
                     .requestMatchers("/uploads/**").permitAll()
+                    // Danh gia: xem cong khai, nhung hoi "toi danh gia duoc khong" va gui
+                    // danh gia thi phai dang nhap. Khai TRUOC hai quy tac chung ben duoi vi
+                    // Spring dung quy tac khop DAU TIEN.
+                    .requestMatchers(HttpMethod.GET, "/products/*/reviews/eligibility").authenticated()
+                    .requestMatchers(HttpMethod.POST, "/products/*/reviews").authenticated()
+                    // Duyet danh gia: ADMIN va nhan vien
+                    .requestMatchers("/reviews", "/reviews/**").hasAnyRole("ADMIN", "STAFF")
                     // Xem hang: ai cung xem duoc, khong can dang nhap
                     .requestMatchers(HttpMethod.GET, "/products/**", "/categories/**").permitAll()
-                    // Moi thao tac ghi: chi ADMIN
-                    .requestMatchers(HttpMethod.POST, "/products/**", "/categories/**").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.PUT, "/products/**", "/categories/**").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.DELETE, "/products/**", "/categories/**").hasRole("ADMIN")
+                    // Moi thao tac ghi: ADMIN va nhan vien (STAFF)
+                    .requestMatchers(HttpMethod.POST, "/products/**", "/categories/**").hasAnyRole("ADMIN", "STAFF")
+                    .requestMatchers(HttpMethod.PUT, "/products/**", "/categories/**").hasAnyRole("ADMIN", "STAFF")
+                    .requestMatchers(HttpMethod.DELETE, "/products/**", "/categories/**").hasAnyRole("ADMIN", "STAFF")
                     .anyRequest().authenticated())
             // BAT BUOC: mac dinh Spring Security dung Http403ForbiddenEntryPoint, tra 403 cho
             // ca truong hop THIEU token. Nhu vay sai quy uoc ma frontend dua vao de tu dang

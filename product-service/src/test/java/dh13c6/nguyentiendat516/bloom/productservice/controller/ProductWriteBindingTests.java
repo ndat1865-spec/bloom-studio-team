@@ -27,11 +27,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Duong GHI cua san pham: body va {id} co thuc su den duoc tang Service khong.
  *
- * Co test rieng vi da tung hong that: khi bo tham so role (xem HANDOFF 4.10), annotation
+ * Co test rieng vi da tung hong that: khi bo tham so role (role nay lay tu JWT), annotation
  * @RequestParam(required = false) bi bo lai va dinh sang tham so ke tiep. Spring uu tien
  * RequestParam hon RequestBody/PathVariable, "required = false" nen no tra null thay vi
  * bao loi - ket qua la moi lenh them/sua/xoa san pham deu 500 vi NullPointerException.
- * Bien dich van sach, khong test nao do toi. Xem HANDOFF 4.14.
+ * Bien dich van sach, khong test nao do toi.
  */
 class ProductWriteBindingTests {
 
