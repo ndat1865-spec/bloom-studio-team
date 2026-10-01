@@ -10,7 +10,10 @@ public record OrderItemResponse(
         Double unitPrice,
         Integer quantity,
         Double lineTotal,
-        String imageUrl
+        String imageUrl,
+        String size,
+        String sizeLabel,
+        Long customRequestId
 ) {
     public static OrderItemResponse from(OrderItem item) {
         return new OrderItemResponse(
@@ -20,6 +23,9 @@ public record OrderItemResponse(
                 item.getUnitPrice(),
                 item.getQuantity(),
                 item.getLineTotal(),
-                item.getImageUrl());
+                item.getImageUrl(),
+                item.getSize(),
+                item.getSizeLabel(),
+                item.getCustomRequestId());
     }
 }
