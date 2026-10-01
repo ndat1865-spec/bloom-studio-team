@@ -48,7 +48,7 @@ export function DialogContent({
             className={cn(
               "fixed left-1/2 top-1/2 z-50 w-[min(32rem,calc(100vw-2rem))]",
               "-translate-x-1/2 -translate-y-1/2",
-              "border border-border bg-surface p-6 shadow-[0_24px_64px_rgba(0,0,0,0.55)]",
+              "rounded-[var(--radius-md)] border border-border bg-surface p-6 shadow-[var(--shadow-pop)]",
               className,
             )}
             initial={{ opacity: 0, scale: 0.97 }}
@@ -56,11 +56,11 @@ export function DialogContent({
             exit={{ opacity: 0, scale: 0.97 }}
             transition={{ duration: 0.18, ease: [0.2, 0, 0, 1] }}
           >
-            <DialogPrimitive.Title className="display-lg pr-8 text-foreground">
+            <DialogPrimitive.Title className="pr-8 text-lg font-semibold text-foreground">
               {title}
             </DialogPrimitive.Title>
             {description ? (
-              <DialogPrimitive.Description className="mt-3 text-sm font-light text-muted-foreground">
+              <DialogPrimitive.Description className="mt-2 text-sm leading-relaxed text-muted-foreground">
                 {description}
               </DialogPrimitive.Description>
             ) : (
@@ -68,12 +68,12 @@ export function DialogContent({
             )}
 
             {children ? <div className="mt-5">{children}</div> : null}
-            {footer ? <div className="mt-7 flex flex-wrap justify-end gap-3">{footer}</div> : null}
+            {footer ? <div className="mt-6 flex flex-wrap justify-end gap-2">{footer}</div> : null}
 
             <DialogPrimitive.Close
               className={cn(
-                "absolute right-4 top-4 p-2 text-muted-foreground transition-colors",
-                "hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                "absolute right-3 top-3 rounded-[var(--radius-sm)] p-2 text-muted-foreground transition-colors",
+                "hover:bg-surface-hover hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
               )}
             >
               <X className="size-4" aria-hidden="true" />

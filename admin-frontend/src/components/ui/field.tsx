@@ -12,27 +12,22 @@ export const Label = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <LabelPrimitive.Root
     ref={ref}
-    className={cn("label-micro block text-muted-foreground", className)}
+    className={cn("block text-[0.8125rem] font-medium text-muted-foreground", className)}
     {...props}
   />
 ));
 Label.displayName = "Label";
 
 /*
-  Kieu o nhap dung chung toan bo ung dung: KHONG vien hop, chi mot duong GACH CHAN.
-  Cung ngon ngu voi khoi tom tat "khong dung vien hop" trong DESIGN.md, va voi
-  o tim kiem o trang danh sach hoa.
-
-  px-0: khong con hop thi chu phai thang hang voi nhan phia tren, neu thut vao
-  3.5 don vi nhu cu se thay ro la le.
-  Duong gach chan doi mau khi focus (xem tung component ben duoi) — day la tin hieu
-  chinh; outline cua ban phim van giu, day ra offset-4 de khong de len chu.
+  Kieu o nhap cua cong cu quan tri: hop co vien, bo goc 6px, cao 36px.
+  Vien doi sang mau diem nhan khi focus — day la tin hieu chinh, outline
+  cua ban phim van giu de nguoi dung Tab thay ro.
 */
 const controlClasses = [
-  "w-full rounded-none border-0 border-b bg-transparent px-0 py-3",
-  "font-sans text-sm text-foreground placeholder:text-muted-foreground/70",
-  "transition-colors duration-200",
-  "focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring",
+  "h-9 w-full rounded-[var(--radius-sm)] border bg-background px-3",
+  "font-sans text-sm text-foreground placeholder:text-subtle-foreground",
+  "transition-colors duration-150",
+  "focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring",
   "disabled:cursor-not-allowed disabled:opacity-50",
 ].join(" ");
 
@@ -62,7 +57,7 @@ export const Textarea = React.forwardRef<
     aria-invalid={invalid || undefined}
     className={cn(
       controlClasses,
-      "min-h-28 resize-y leading-relaxed",
+      "h-auto min-h-24 resize-y py-2 leading-relaxed",
       invalid ? "border-danger" : "border-border-strong focus:border-accent",
       className,
     )}
@@ -92,7 +87,7 @@ export const NativeSelect = React.forwardRef<
     </select>
     <span
       aria-hidden="true"
-      className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground"
+      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
     >
       <svg width="12" height="8" viewBox="0 0 12 8" fill="none" aria-hidden="true">
         <path d="M1 1.5 6 6.5l5-5" stroke="currentColor" strokeWidth="1.4" />
@@ -106,7 +101,7 @@ NativeSelect.displayName = "NativeSelect";
 export function FieldError({ children, id }: { children?: React.ReactNode; id?: string }) {
   if (!children) return null;
   return (
-    <p id={id} className="mt-2 flex items-start gap-1.5 text-xs text-danger">
+    <p id={id} className="mt-1.5 flex items-start gap-1.5 text-xs text-danger">
       <AlertCircle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
       <span>{children}</span>
     </p>
@@ -116,7 +111,7 @@ export function FieldError({ children, id }: { children?: React.ReactNode; id?: 
 export function FieldHint({ children, id }: { children?: React.ReactNode; id?: string }) {
   if (!children) return null;
   return (
-    <p id={id} className="mt-2 text-xs text-muted-foreground">
+    <p id={id} className="mt-1.5 text-xs text-subtle-foreground">
       {children}
     </p>
   );
@@ -150,7 +145,7 @@ export function Field({
 
   return (
     <div className={cn("w-full", className)}>
-      <Label htmlFor={id} className="mb-2">
+      <Label htmlFor={id} className="mb-1.5">
         {label}
         {required ? <span className="ml-1 text-accent">*</span> : null}
       </Label>

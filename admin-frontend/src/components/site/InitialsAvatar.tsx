@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
  */
 
 const SIZES = {
-  sm: "size-9 text-[0.7rem]",
+  sm: "size-8 text-[0.6875rem]",
   md: "size-11 text-sm",
   lg: "size-20 text-xl",
   xl: "size-24 text-2xl",
@@ -47,7 +47,7 @@ export function InitialsAvatar({
       aria-hidden="true"
       className={cn(
         "inline-flex shrink-0 select-none items-center justify-center rounded-full",
-        "bg-accent/15 font-display font-semibold italic leading-none text-accent",
+        "bg-accent/15 font-sans font-semibold leading-none text-accent",
         "ring-1 ring-inset ring-accent/30",
         // Co san transition de nhung noi boc avatar trong nut co the doi mau/vien muot ma
         "transition-[background-color,color,box-shadow,transform] duration-300 ease-out",

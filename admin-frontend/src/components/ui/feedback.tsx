@@ -11,31 +11,17 @@ import { cn } from "@/lib/utils";
 export function Skeleton({ className }: { className?: string }) {
   return (
     <div
-      className={cn("animate-pulse bg-surface-raised", className)}
+      className={cn("animate-pulse rounded bg-surface-raised", className)}
       aria-hidden="true"
     />
   );
 }
 
-export function ProductCardSkeleton() {
-  return (
-    <div className="border border-border bg-surface">
-      <Skeleton className="aspect-[4/5] w-full" />
-      <div className="space-y-3 p-5">
-        <Skeleton className="h-3 w-20" />
-        <Skeleton className="h-5 w-3/4" />
-        <Skeleton className="h-3 w-full" />
-        <Skeleton className="h-4 w-16" />
-      </div>
-    </div>
-  );
-}
-
 export function TableRowSkeleton({ columns }: { columns: number }) {
   return (
-    <tr className="border-b border-border">
+    <tr>
       {Array.from({ length: columns }).map((_, index) => (
-        <td key={index} className="px-4 py-4">
+        <td key={index}>
           <Skeleton className="h-4 w-full" />
         </td>
       ))}
@@ -53,11 +39,13 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center border border-dashed border-border px-6 py-16 text-center">
-      <Inbox className="size-6 text-muted-foreground" aria-hidden="true" />
-      <h3 className="display-lg mt-5 text-foreground">{title}</h3>
-      <p className="prose-measure mt-3 text-sm font-light text-muted-foreground">{description}</p>
-      {action ? <div className="mt-6">{action}</div> : null}
+    <div className="flex flex-col items-center px-6 py-14 text-center">
+      <span className="inline-flex size-11 items-center justify-center rounded-full bg-surface-raised">
+        <Inbox className="size-5 text-muted-foreground" aria-hidden="true" />
+      </span>
+      <h3 className="mt-4 text-base text-foreground">{title}</h3>
+      <p className="prose-measure mt-1.5 text-sm text-muted-foreground">{description}</p>
+      {action ? <div className="mt-5">{action}</div> : null}
     </div>
   );
 }
@@ -72,7 +60,7 @@ export function ErrorState({
   return (
     <div
       role="alert"
-      className="flex flex-col items-center border border-danger/60 bg-danger/5 px-6 py-14 text-center"
+      className="flex flex-col items-center rounded-[var(--radius-md)] border border-danger/40 bg-danger/5 px-6 py-12 text-center"
     >
       <AlertCircle className="size-6 text-danger" aria-hidden="true" />
       <p className="prose-measure mt-4 text-sm text-foreground">{message}</p>
@@ -99,10 +87,10 @@ export function Notice({
     <div
       role={isError ? "alert" : "status"}
       className={cn(
-        "flex items-start gap-2.5 border px-4 py-3 text-sm",
+        "flex items-start gap-2.5 rounded-[var(--radius-sm)] border px-4 py-3 text-sm",
         isError
-          ? "border-danger/60 bg-danger/10 text-danger"
-          : "border-success/60 bg-success/10 text-success",
+          ? "border-danger/40 bg-danger/10 text-danger"
+          : "border-success/40 bg-success/10 text-success",
         className,
       )}
     >

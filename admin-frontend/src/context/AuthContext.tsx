@@ -1,12 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { TOKEN_KEY, USER_KEY, clearStoredAuth } from "@/lib/api";
-import type { AuthUser } from "@/lib/api";
+import type { AuthUser, Role } from "@/lib/api";
 
 type AuthContextValue = {
   user: AuthUser | null;
   /** Role dung cho giao dien (an/hien menu). KHONG con gui kem request nao. */
   role: string;
+  /** ADMIN: moi quyen, ke ca ma giam gia, Khoa API va tai khoan nhan vien. */
+  isAdmin: boolean;
   isAuthenticated: boolean;
   /** Luu token va ho so sau khi dang nhap thanh cong. */
   signIn: (token: string, profile: AuthUser) => void;
@@ -60,7 +62,7 @@ function readStoredSession(): AuthUser | null {
     if (
       typeof parsed?.id === "number" &&
       typeof parsed?.username === "string" &&
-      (parsed?.role === "ADMIN" || parsed?.role === "CUSTOMER")
+      (["ADMIN", "STAFF", "CUSTOMER"] as Role[]).includes(parsed?.role as Role)
     ) {
       return sanitize(parsed as AuthUser);
     }
@@ -116,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user,
       role: user?.role ?? "",
+      isAdmin: user?.role === "ADMIN",
       isAuthenticated: user !== null,
       signIn,
       signOut,

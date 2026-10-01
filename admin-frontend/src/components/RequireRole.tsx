@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
+import type { Role } from "@/lib/api";
 
 /**
  * Chan truy cap trai role o phia giao dien.
@@ -8,21 +9,25 @@ import { useAuth } from "@/context/AuthContext";
  * LUU Y: day chi la trai nghiem nguoi dung, KHONG phai bao mat.
  * Backend van tu kiem tra role trong JWT o tung service.
  *
- * App quan tri chi co mot loai nguoi dung: chua dang nhap hoac khong phai ADMIN
- * thi deu ve /login (LoginPage se tu choi tai khoan CUSTOMER).
+ * - Chua dang nhap (hoac la CUSTOMER) -> ve /login (LoginPage tu choi CUSTOMER).
+ * - Da dang nhap nhung khong du quyen (nhan vien mo trang chi danh cho ADMIN, vd. Khoa API)
+ *   -> ve Bang dieu khien, khong da ra trang dang nhap.
  */
 export function RequireRole({
-  role,
+  roles,
   children,
 }: {
-  role: "ADMIN" | "CUSTOMER";
+  roles: readonly Role[];
   children: ReactNode;
 }) {
   const { user } = useAuth();
   const location = useLocation();
 
-  if (!user || user.role !== role) {
+  if (!user || user.role === "CUSTOMER") {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
+  if (!roles.includes(user.role)) {
+    return <Navigate to="/admin" replace state={{ forbidden: location.pathname }} />;
   }
   return <>{children}</>;
 }

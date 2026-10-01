@@ -1,8 +1,10 @@
 import { Suspense, lazy } from "react";
+import type { ReactNode } from "react";
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
-import { AdminHeader } from "@/components/site/AdminHeader";
+import { AdminShell } from "@/components/site/AdminShell";
 import { RequireRole } from "@/components/RequireRole";
 import { Spinner } from "@/components/ui/feedback";
+import { BACKOFFICE_ROLES } from "@/lib/api";
 
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
 const AdminOverviewPage = lazy(() => import("@/pages/AdminOverviewPage"));
@@ -10,6 +12,12 @@ const AdminOrdersPage = lazy(() => import("@/pages/AdminOrdersPage"));
 const AdminProductsPage = lazy(() => import("@/pages/AdminProductsPage"));
 const AdminCategoriesPage = lazy(() => import("@/pages/AdminCategoriesPage"));
 const AdminApiKeysPage = lazy(() => import("@/pages/AdminApiKeysPage"));
+const AdminVouchersPage = lazy(() => import("@/pages/AdminVouchersPage"));
+const AdminReviewsPage = lazy(() => import("@/pages/AdminReviewsPage"));
+const AdminCustomRequestsPage = lazy(() => import("@/pages/AdminCustomRequestsPage"));
+const AdminChatPage = lazy(() => import("@/pages/AdminChatPage"));
+const AdminNotificationsPage = lazy(() => import("@/pages/AdminNotificationsPage"));
+const AdminStaffPage = lazy(() => import("@/pages/AdminStaffPage"));
 const OrderDetailPage = lazy(() => import("@/pages/OrderDetailPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 
@@ -31,34 +39,39 @@ function BareLayout() {
 }
 
 /**
- * Khung cua moi trang quan tri. RequireRole boc ca khung nen tung route
- * ben trong khong phai tu kiem tra quyen nua.
+ * Khung cua moi trang quan tri: sidebar + thanh tren. RequireRole boc ca khung cho ADMIN
+ * va nhan vien; trang chi danh cho ADMIN (Khoa API, Nhan vien) boc them AdminOnly.
  */
 function AdminLayout() {
   return (
-    <RequireRole role="ADMIN">
+    <RequireRole roles={BACKOFFICE_ROLES}>
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:border focus:border-accent focus:bg-background focus:px-4 focus:py-3 focus:text-sm focus:text-accent"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-[var(--radius-sm)] focus:border focus:border-accent focus:bg-background focus:px-4 focus:py-3 focus:text-sm focus:text-accent"
       >
         Bỏ qua tới nội dung
       </a>
 
-      <AdminHeader />
-
-      <main id="main" tabIndex={-1}>
-        <Suspense
-          fallback={
-            <div className="shell flex min-h-[50svh] items-center justify-center">
-              <Spinner label="Đang tải trang…" />
-            </div>
-          }
-        >
-          <Outlet />
-        </Suspense>
-      </main>
+      <AdminShell>
+        <main id="main" tabIndex={-1} className="focus:outline-none">
+          <Suspense
+            fallback={
+              <div className="shell flex min-h-[50svh] items-center justify-center">
+                <Spinner label="Đang tải trang…" />
+              </div>
+            }
+          >
+            <Outlet />
+          </Suspense>
+        </main>
+      </AdminShell>
     </RequireRole>
   );
+}
+
+/** Trang nhan vien khong duoc vao: go thang URL thi ve Bang dieu khien. */
+function AdminOnly({ children }: { children: ReactNode }) {
+  return <RequireRole roles={["ADMIN"]}>{children}</RequireRole>;
 }
 
 export default function App() {
@@ -75,7 +88,13 @@ export default function App() {
         <Route path="admin/products" element={<AdminProductsPage />} />
         <Route path="admin/categories" element={<AdminCategoriesPage />} />
         <Route path="admin/orders" element={<AdminOrdersPage />} />
-        <Route path="admin/api-keys" element={<AdminApiKeysPage />} />
+        <Route path="admin/requests" element={<AdminCustomRequestsPage />} />
+        <Route path="admin/chat" element={<AdminChatPage />} />
+        <Route path="admin/api-keys" element={<AdminOnly><AdminApiKeysPage /></AdminOnly>} />
+        <Route path="admin/staff" element={<AdminOnly><AdminStaffPage /></AdminOnly>} />
+        <Route path="admin/vouchers" element={<AdminVouchersPage />} />
+        <Route path="admin/reviews" element={<AdminReviewsPage />} />
+        <Route path="admin/notifications" element={<AdminNotificationsPage />} />
         <Route path="orders/:id" element={<OrderDetailPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
