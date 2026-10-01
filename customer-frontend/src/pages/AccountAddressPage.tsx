@@ -1,20 +1,29 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, MapPin, Pencil, Trash2 } from "lucide-react";
+import { Loader2, MapPin, Pencil, Trash2, Truck } from "lucide-react";
 import { AccountLayout } from "@/components/account/AccountLayout";
+import { GhnAddressSelects } from "@/components/shop/GhnAddressSelects";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { EmptyState, Notice } from "@/components/ui/feedback";
 import { useAuth } from "@/context/AuthContext";
 import { ApiError, api } from "@/lib/api";
 import type { ProfilePayload } from "@/lib/api";
+import { useGhnAddress } from "@/lib/useGhnAddress";
+
+/** So di dong Viet Nam 10 so — GHN tu choi so khac. Giong trang Thanh toan. */
+const VN_PHONE = /^(0|84)\d{9}$/;
+
+type AddressFields = Omit<ProfilePayload, "fullName" | "email">;
 
 /**
  * Tai khoan > So dia chi. PHAN MO RONG ngoai SOS01-SOS10.
  *
- * Pham vi: MOT dia chi mac dinh luu thang tren ban ghi user
- * (cot phone / address / city), khong phai bang dia chi rieng.
- * Trang Thanh toan doc lai dung ba truong nay de dien san form.
+ * Pham vi: MOT dia chi mac dinh luu thang tren ban ghi user, khong phai bang dia chi rieng.
+ * Trang Thanh toan doc lai cac truong nay de dien san form.
+ *
+ * Server bat GHN (options.ghnEnabled): chon Tinh / Quan / Phuong theo danh muc GHN, luu ca
+ * ba ma de trang Thanh toan chon san va tinh phi ngay. Chua bat GHN thi giu hai o go tu do.
  */
 export default function AccountAddressPage() {
   const { user, updateUser } = useAuth();
@@ -29,22 +38,60 @@ export default function AccountAddressPage() {
   const [address, setAddress] = useState(user?.address ?? "");
   const [city, setCity] = useState(user?.city ?? "");
 
+  // Hong thi coi nhu chua bat GHN: van luu duoc dia chi go tu do
+  const [ghnEnabled, setGhnEnabled] = useState(false);
+  useEffect(() => {
+    const controller = new AbortController();
+    api
+      .getOrderOptions(controller.signal)
+      .then((options) => setGhnEnabled(options.ghnEnabled))
+      .catch(() => setGhnEnabled(false));
+    return () => controller.abort();
+  }, []);
+
+  const ghn = useGhnAddress(ghnEnabled);
+
   if (!user) return null;
 
   const hasAddress = Boolean(user.address && user.address.trim());
+  const hasGhnArea = Boolean(user.wardCode);
+  const areaText = user.areaLabel || user.city;
 
   function startEditing() {
     setPhone(user?.phone ?? "");
     setAddress(user?.address ?? "");
     setCity(user?.city ?? "");
+    if (user?.wardCode) {
+      ghn.prefill({ provinceId: user.provinceId, districtId: user.districtId, wardCode: user.wardCode });
+    } else {
+      ghn.selectProvince(null);
+    }
     setErrors({});
     setFormError(null);
     setNotice(null);
     setEditing(true);
   }
 
+  function validate(): boolean {
+    const next: Record<string, string> = {};
+    if (ghnEnabled) {
+      if (phone.trim() && !VN_PHONE.test(phone.replace(/\D/g, ""))) {
+        next.phone = "Số di động Việt Nam 10 chữ số, ví dụ 0901 234 567.";
+      }
+      if (ghn.provinceId == null) next.provinceId = "Chọn tỉnh/thành phố.";
+      if (ghn.districtId == null) next.districtId = "Chọn quận/huyện.";
+      if (!ghn.wardCode) next.wardCode = "Chọn phường/xã.";
+      if (!address.trim()) next.address = "Nhập số nhà, tên đường.";
+      else if (address.trim().length < 3) next.address = "Địa chỉ cần ít nhất 3 ký tự.";
+    } else if (!address.trim()) {
+      next.address = "Nhập địa chỉ giao hàng.";
+    }
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  }
+
   /** Dung chung cho ca luu va xoa — chi khac gia tri truyen vao. */
-  async function save(next: { phone: string; address: string; city: string }, message: string) {
+  async function save(next: AddressFields, message: string) {
     if (!user) return;
 
     setSaving(true);
@@ -75,11 +122,35 @@ export default function AccountAddressPage() {
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    void save({ phone, address, city }, "Đã lưu địa chỉ mặc định.");
+    if (!validate()) return;
+
+    if (ghnEnabled) {
+      // Chua doi khu vuc ma danh sach chua tai xong thi giu nhan cu
+      const sameArea =
+        ghn.provinceId === user?.provinceId &&
+        ghn.districtId === user?.districtId &&
+        ghn.wardCode === user?.wardCode;
+      void save(
+        {
+          phone: phone.trim(),
+          address: address.trim(),
+          // Ten phuong/quan/tinh nam o areaLabel, bo o "Quan / Thanh pho" go tay cu
+          city: "",
+          provinceId: ghn.provinceId,
+          districtId: ghn.districtId,
+          wardCode: ghn.wardCode,
+          areaLabel: ghn.areaLabel ?? (sameArea ? user?.areaLabel ?? "" : ""),
+        },
+        "Đã lưu địa chỉ mặc định.",
+      );
+      return;
+    }
+    // Go tu do thay cho dia chi GHN cu -> xoa luon ba ma GHN de khong lech nhau
+    void save({ phone, address, city, wardCode: "" }, "Đã lưu địa chỉ mặc định.");
   }
 
   function handleRemove() {
-    void save({ phone: "", address: "", city: "" }, "Đã xoá địa chỉ mặc định.");
+    void save({ phone: "", address: "", city: "", wardCode: "" }, "Đã xoá địa chỉ mặc định.");
   }
 
   return (
@@ -133,31 +204,64 @@ export default function AccountAddressPage() {
               )}
             </Field>
 
-            <Field id="address" label="Địa chỉ giao hàng" error={errors.address}>
-              {(props) => (
-                <Input
-                  {...props}
-                  autoComplete="street-address"
-                  maxLength={255}
-                  value={address}
-                  onChange={(event) => setAddress(event.target.value)}
-                  placeholder="Số nhà, đường, phường"
-                />
-              )}
-            </Field>
+            {ghnEnabled ? (
+              <>
+                <GhnAddressSelects ghn={ghn} errors={errors} required />
+                <Field
+                  id="address"
+                  label="Số nhà, tên đường"
+                  error={errors.address}
+                  hint="Tên phường, quận, tỉnh được ghép tự động theo lựa chọn ở trên."
+                  required
+                >
+                  {(props) => (
+                    <Input
+                      {...props}
+                      autoComplete="address-line1"
+                      maxLength={150}
+                      value={address}
+                      onChange={(event) => setAddress(event.target.value)}
+                      placeholder="12 Nguyễn Huệ"
+                    />
+                  )}
+                </Field>
+                <p className="flex items-start gap-2.5 text-xs font-light leading-relaxed text-muted-foreground">
+                  <Truck className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
+                  <span>
+                    Giao bởi Giao Hàng Nhanh (GHN). Lưu khu vực theo danh mục GHN thì trang thanh
+                    toán chọn sẵn và tính phí giao ngay, không phải chọn lại.
+                  </span>
+                </p>
+              </>
+            ) : (
+              <>
+                <Field id="address" label="Địa chỉ giao hàng" error={errors.address}>
+                  {(props) => (
+                    <Input
+                      {...props}
+                      autoComplete="street-address"
+                      maxLength={255}
+                      value={address}
+                      onChange={(event) => setAddress(event.target.value)}
+                      placeholder="Số nhà, đường, phường"
+                    />
+                  )}
+                </Field>
 
-            <Field id="city" label="Quận / Thành phố" error={errors.city}>
-              {(props) => (
-                <Input
-                  {...props}
-                  autoComplete="address-level2"
-                  maxLength={60}
-                  value={city}
-                  onChange={(event) => setCity(event.target.value)}
-                  placeholder="Hà Nội"
-                />
-              )}
-            </Field>
+                <Field id="city" label="Quận / Thành phố" error={errors.city}>
+                  {(props) => (
+                    <Input
+                      {...props}
+                      autoComplete="address-level2"
+                      maxLength={60}
+                      value={city}
+                      onChange={(event) => setCity(event.target.value)}
+                      placeholder="Hà Nội"
+                    />
+                  )}
+                </Field>
+              </>
+            )}
 
             <div className="flex flex-wrap gap-3 pt-1">
               <Button type="submit" variant="primary" size="lg" disabled={saving}>
@@ -214,10 +318,26 @@ export default function AccountAddressPage() {
                 </p>
               )}
               <p className="mt-4 text-sm font-light leading-relaxed text-muted-foreground">
-                {[user.address, user.city].filter(Boolean).join(", ")}
+                {[user.address, areaText].filter(Boolean).join(", ")}
               </p>
+              {hasGhnArea ? (
+                <p className="label-micro mt-3 flex items-center gap-1.5 text-accent">
+                  <Truck className="size-3.5" aria-hidden="true" />
+                  Khu vực giao GHN
+                </p>
+              ) : null}
             </div>
           </div>
+
+          {ghnEnabled && !hasGhnArea ? (
+            <p className="mt-6 flex items-start gap-2.5 border border-accent/40 bg-accent/10 px-4 py-3 text-sm font-light leading-relaxed text-foreground">
+              <Truck className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
+              <span>
+                Địa chỉ này chưa chọn Tỉnh / Quận / Phường theo GHN. Bấm <em>Sửa địa chỉ</em> để
+                chọn, lần sau trang thanh toán sẽ điền sẵn và tính phí giao ngay.
+              </span>
+            </p>
+          ) : null}
 
           <div className="mt-8 flex flex-wrap gap-3 border-t border-border pt-6">
             <Button variant="outline" size="md" onClick={startEditing} disabled={saving}>

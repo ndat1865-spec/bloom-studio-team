@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -35,13 +36,20 @@ export function initialsOf(name: string | null | undefined): string {
 
 export function InitialsAvatar({
   name,
+  src,
   size = "md",
   className,
 }: {
   name: string | null | undefined;
+  /** Anh dai dien (vd. tu Google). Khong co / tai hong thi quay ve chu cai dau. */
+  src?: string | null;
   size?: keyof typeof SIZES;
   className?: string;
 }) {
+  // Nho anh nao da tai hong, doi anh khac thi thu lai
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const showImage = Boolean(src) && failedSrc !== src;
+
   return (
     <span
       aria-hidden="true"
@@ -55,7 +63,19 @@ export function InitialsAvatar({
         className,
       )}
     >
-      {initialsOf(name)}
+      {showImage ? (
+        <img
+          src={src ?? undefined}
+          alt=""
+          // Anh Google (lh3.googleusercontent.com) hay tra 403 khi co Referer tu trang khac
+          referrerPolicy="no-referrer"
+          draggable={false}
+          onError={() => setFailedSrc(src ?? null)}
+          className="size-full rounded-full object-cover"
+        />
+      ) : (
+        initialsOf(name)
+      )}
     </span>
   );
 }

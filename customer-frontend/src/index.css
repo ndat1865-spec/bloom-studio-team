@@ -126,8 +126,19 @@
 
   /* Icon lich/gio cua trinh duyet doi sang bang mau toi cho khop giao dien */
   input[type="date"],
-  input[type="time"] {
+  input[type="time"],
+  select {
     color-scheme: dark;
+  }
+
+  /*
+    Danh sach tha xuong cua <select> do trinh duyet tu ve, mac dinh nen TRANG nhung
+    chu lai ke thua mau kem cua giao dien -> kem tren trang, gan nhu khong doc duoc.
+    Dat mau nen + chu ro rang cho tung <option>.
+  */
+  option {
+    background-color: var(--color-surface-raised);
+    color: var(--color-foreground);
   }
 
   :focus-visible {

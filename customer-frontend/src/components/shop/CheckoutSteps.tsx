@@ -1,7 +1,7 @@
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const STEPS = ["Giỏ hàng", "Thanh toán", "Hoàn tất"] as const;
+const STEPS = ["Chọn hoa", "Đặt hoa", "Hoàn tất"] as const;
 
 /**
  * Chi dan buoc cua luong mua: Gio hang -> Thanh toan -> Hoan tat.

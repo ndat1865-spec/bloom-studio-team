@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
-import { LogOut, MapPin, Package, UserRound } from "lucide-react";
+import { Flower2, LogOut, MapPin, Package, TicketPercent, UserRound } from "lucide-react";
 import { InitialsAvatar } from "@/components/site/InitialsAvatar";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
@@ -9,13 +9,15 @@ import { cn } from "@/lib/utils";
  * Khung chung cua khu vuc Tai khoan: cot trai dinh danh + dieu huong, cot phai la noi dung.
  *
  * PHAN MO RONG ngoai SOS01-SOS10.
- * Khong co muc Voucher va Doi tra — hai thu do khong ton tai trong pham vi du an.
+ * Khong co muc Doi tra — khong nam trong pham vi du an.
  */
 
 const NAV_ITEMS = [
   { to: "/tai-khoan", label: "Thông tin cá nhân", icon: UserRound, end: true },
   { to: "/tai-khoan/dia-chi", label: "Sổ địa chỉ", icon: MapPin, end: false },
   { to: "/tai-khoan/don-hang", label: "Đơn hàng của tôi", icon: Package, end: false },
+  { to: "/tai-khoan/yeu-cau-dat-hoa", label: "Yêu cầu đặt hoa", icon: Flower2, end: false },
+  { to: "/tai-khoan/ma-giam-gia", label: "Mã giảm giá", icon: TicketPercent, end: false },
 ];
 
 export function AccountLayout({
@@ -50,13 +52,13 @@ export function AccountLayout({
         <aside className="lg:sticky lg:top-28 lg:self-start">
           <div className="bg-surface p-6">
             <div className="flex items-center gap-4">
-              <InitialsAvatar name={name} size="lg" />
+              <InitialsAvatar name={name} src={user.avatarUrl} size="lg" />
               <div className="min-w-0">
                 <p className="truncate font-display text-lg font-semibold italic text-foreground">
                   {name}
                 </p>
                 <p className="label-micro mt-1.5 text-accent">
-                  {user.role === "ADMIN" ? "Quản trị viên" : "Khách hàng"}
+                  {user.role === "ADMIN" ? "Quản trị viên" : user.role === "STAFF" ? "Nhân viên" : "Khách hàng"}
                 </p>
               </div>
             </div>

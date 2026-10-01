@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label, NativeSelect } from "@/components/ui/field";
 import { EmptyState, ErrorState, ProductCardSkeleton, Spinner } from "@/components/ui/feedback";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { Pagination } from "@/components/shop/Pagination";
-import { api, type Category } from "@/lib/api";
+import { api, type Category, type ProductAttributes } from "@/lib/api";
 import { useDebounced, useProducts } from "@/lib/useProducts";
 import { cn } from "@/lib/utils";
 
@@ -18,7 +18,26 @@ const SORTS = [
   { value: "name,desc", label: "Tên Z–A" },
   { value: "price,asc", label: "Giá tăng dần" },
   { value: "price,desc", label: "Giá giảm dần" },
+  { value: "ratingAverage,desc", label: "Đánh giá cao nhất" },
 ];
+
+/** Khoang gia dung san. Khoa URL dang "min-max", bo trong mot dau = khong gioi han. */
+const PRICE_RANGES = [
+  { value: "", label: "Mọi mức giá" },
+  { value: "0-600000", label: "Dưới 600.000₫" },
+  { value: "600000-1000000", label: "600.000₫ – 1 triệu" },
+  { value: "1000000-3000000", label: "1 – 3 triệu" },
+  { value: "3000000-", label: "Trên 3 triệu" },
+];
+
+function parsePriceRange(value: string | null): { minPrice: number | null; maxPrice: number | null } {
+  if (!value) return { minPrice: null, maxPrice: null };
+  const [min, max] = value.split("-");
+  return {
+    minPrice: min ? Number(min) : null,
+    maxPrice: max ? Number(max) : null,
+  };
+}
 
 /**
  * SOS08 — danh sach hoa cho CUSTOMER.
@@ -32,11 +51,16 @@ export default function ProductsPage() {
   const sort = params.get("sort") ?? "";
   const categoryParam = params.get("category");
   const categoryId = categoryParam ? Number(categoryParam) : null;
+  const occasion = params.get("occasion");
+  const color = params.get("color");
+  const priceParam = params.get("price");
+  const { minPrice, maxPrice } = parsePriceRange(priceParam);
 
   const [search, setSearch] = useState(params.get("name") ?? "");
   const debouncedSearch = useDebounced(search);
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [attributes, setAttributes] = useState<ProductAttributes>({ occasions: [], colors: [] });
 
   // Dong bo o tim kiem (da debounce) vao URL, dong thoi dat lai page = 0
   useEffect(() => {
@@ -57,12 +81,27 @@ export default function ProductsPage() {
       .listCategories(controller.signal)
       .then(setCategories)
       .catch(() => setCategories([]));
+    // Danh sach dip va mau do backend cap — bo loc chi la phan them, loi thi an di
+    api
+      .getProductAttributes(controller.signal)
+      .then(setAttributes)
+      .catch(() => setAttributes({ occasions: [], colors: [] }));
     return () => controller.abort();
   }, []);
 
   const query = useMemo(
-    () => ({ name: params.get("name") ?? "", categoryId, page, size: PAGE_SIZE, sort }),
-    [params, categoryId, page, sort],
+    () => ({
+      name: params.get("name") ?? "",
+      categoryId,
+      occasion,
+      color,
+      minPrice,
+      maxPrice,
+      page,
+      size: PAGE_SIZE,
+      sort,
+    }),
+    [params, categoryId, occasion, color, minPrice, maxPrice, page, sort],
   );
 
   const { data, loading, error, reload } = useProducts(query);
@@ -85,7 +124,9 @@ export default function ProductsPage() {
     neu khong, chon mot danh muc xong thi tab "Tat ca" se hien so cua rieng danh muc do.
   */
   const totalInCatalogue = categories.reduce((sum, category) => sum + category.productCount, 0);
-  const hasFilters = Boolean(params.get("name") || categoryParam || sort);
+  const hasFilters = Boolean(
+    params.get("name") || categoryParam || sort || occasion || color || priceParam,
+  );
 
   return (
     <div className="shell page-pad">
@@ -97,14 +138,18 @@ export default function ProductsPage() {
       */}
       <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-16">
         <div>
-          <p className="label-micro text-accent">Shop · London Delivery</p>
-          <h1 className="display-section mt-4 text-foreground">Arrangements</h1>
+          <p className="label-micro text-accent">Mẫu hoa · Giao trong ngày</p>
+          <h1 className="display-section mt-4 text-foreground">Chọn một bó hoa</h1>
           <span aria-hidden="true" className="mt-5 block h-px w-28 bg-accent" />
         </div>
 
         <p className="max-w-md text-sm font-light leading-relaxed text-muted-foreground lg:pb-1.5 lg:text-right">
-          Cắt tươi trong studio ở EC1, giao trong ngày khắp Central và Greater London. Đặt trước
-          11:00 sáng.
+          Cắm tươi trong studio, đặt trước 15:00 là giao ngay hôm nay trong nội thành Hà Nội. Miễn
+          phí giao cho đơn từ 800.000₫. Không thấy mẫu ưng ý?{" "}
+          <Link to="/dat-hoa-theo-yeu-cau" className="text-accent hover:text-accent-strong">
+            Đặt theo yêu cầu
+          </Link>
+          .
         </p>
       </header>
 
@@ -163,6 +208,68 @@ export default function ProductsPage() {
             </NativeSelect>
           </div>
         </div>
+
+        {/*
+          Hang loc theo dip: nut bam dang vien thuoc, vi voi shop hoa khach tim theo DIP
+          (sinh nhat, khai truong...) nhieu hon theo ten. Mau va gia la <select> vi it dung hon.
+        */}
+        {attributes.occasions.length > 0 ? (
+          <div className="mt-7 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div role="group" aria-label="Lọc theo dịp" className="flex flex-wrap gap-2">
+              <OccasionChip
+                label="Mọi dịp"
+                active={!occasion}
+                onClick={() => updateParam("occasion", null)}
+              />
+              {attributes.occasions.map((option) => (
+                <OccasionChip
+                  key={option.value}
+                  label={option.label}
+                  active={occasion === option.value}
+                  onClick={() =>
+                    updateParam("occasion", occasion === option.value ? null : option.value)
+                  }
+                />
+              ))}
+            </div>
+
+            <div className="flex gap-4">
+              <div className="w-40">
+                <Label htmlFor="product-color" className="sr-only">
+                  Màu hoa
+                </Label>
+                <NativeSelect
+                  id="product-color"
+                  value={color ?? ""}
+                  onChange={(event) => updateParam("color", event.target.value || null)}
+                >
+                  <option value="">Mọi màu</option>
+                  {attributes.colors.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </div>
+              <div className="w-40">
+                <Label htmlFor="product-price" className="sr-only">
+                  Khoảng giá
+                </Label>
+                <NativeSelect
+                  id="product-price"
+                  value={priceParam ?? ""}
+                  onChange={(event) => updateParam("price", event.target.value || null)}
+                >
+                  {PRICE_RANGES.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         {/* Hang 2: danh muc dang tab, cuon ngang duoc tren dien thoai */}
         <div className="mt-7">
@@ -317,6 +424,34 @@ function CategoryTab({
           {count}
         </span>
       ) : null}
+    </button>
+  );
+}
+
+/** Nut chon dip. Trang thai chon co ca mau nen, vien va aria-pressed. */
+function OccasionChip({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "rounded-full border px-4 py-1.5 text-xs transition-colors",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        active
+          ? "border-accent bg-accent text-background"
+          : "border-border-strong text-muted-foreground hover:border-accent hover:text-foreground",
+      )}
+    >
+      {label}
     </button>
   );
 }

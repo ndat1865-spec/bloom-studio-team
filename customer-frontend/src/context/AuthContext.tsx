@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { TOKEN_KEY, USER_KEY, clearStoredAuth } from "@/lib/api";
+import { forgetGoogleSelection } from "@/lib/google";
 import type { AuthUser } from "@/lib/api";
 
 type AuthContextValue = {
@@ -39,8 +40,14 @@ function sanitize(next: AuthUser): AuthUser {
     phone: next.phone ?? null,
     address: next.address ?? null,
     city: next.city ?? null,
+    provinceId: next.provinceId ?? null,
+    districtId: next.districtId ?? null,
+    wardCode: next.wardCode ?? null,
+    areaLabel: next.areaLabel ?? null,
     displayName: next.displayName ?? next.fullName ?? next.username,
     hasDefaultAddress: next.hasDefaultAddress ?? false,
+    googleLinked: next.googleLinked ?? false,
+    avatarUrl: next.avatarUrl ?? null,
   };
 }
 
@@ -60,7 +67,7 @@ function readStoredSession(): AuthUser | null {
     if (
       typeof parsed?.id === "number" &&
       typeof parsed?.username === "string" &&
-      (parsed?.role === "ADMIN" || parsed?.role === "CUSTOMER")
+      (parsed?.role === "ADMIN" || parsed?.role === "STAFF" || parsed?.role === "CUSTOMER")
     ) {
       return sanitize(parsed as AuthUser);
     }
@@ -109,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(() => {
     clearStoredAuth();
+    forgetGoogleSelection();
     setUser(null);
   }, []);
 

@@ -18,6 +18,10 @@ npm run dev
 
 Mở http://localhost:5173. Tài khoản thử: `john` / `john123`.
 
+Thử thanh toán **ZaloPay** thì chạy `npm run dev:https` và mở https://localhost:5173
+(chứng chỉ tự ký, trình duyệt cảnh báo một lần). ZaloPay chỉ đưa khách về địa chỉ
+`https://`; `PAYMENT_RETURN_URL` bên payment-service phải đổi sang https cho khớp.
+
 Cổng cố định 5173 (`strictPort`). Báo *"Port 5173 is already in use"* thì tắt tiến trình
 vite cũ, **đừng** đổi cổng: Gateway chỉ cho phép CORS từ 5173 và 5174.
 

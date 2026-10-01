@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Hero } from "@/components/home/Hero";
 import { ArrangementTypes } from "@/components/home/ArrangementTypes";
+import { Occasions } from "@/components/home/Occasions";
 import { SignatureCollection } from "@/components/home/SignatureCollection";
 import { Process } from "@/components/home/Process";
 import { About } from "@/components/home/About";
@@ -34,6 +35,7 @@ export default function HomePage() {
   return (
     <>
       <Hero />
+      <Occasions />
       <ArrangementTypes />
       <SignatureCollection />
       <Process />

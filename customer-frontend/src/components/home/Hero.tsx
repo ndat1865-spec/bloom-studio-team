@@ -63,7 +63,7 @@ export function Hero() {
       {/* Panel bien tap */}
       <div className="relative order-2 flex flex-col justify-center bg-background px-5 py-14 md:px-10 lg:order-1 lg:px-16 lg:py-12">
         <p data-anim="fade-up" data-hero="label" className="label-micro text-accent">
-          London Florist · Bespoke Arrangements
+          Tiệm hoa Hà Nội · Giao trong ngày
         </p>
 
         <h1
@@ -72,11 +72,11 @@ export function Hero() {
           data-hero="heading"
           className="display-hero mt-6 text-foreground"
         >
-          Flowers
+          Gửi một bó hoa,
           <br />
-          That Say
+          nói điều
           <br />
-          <span className="text-accent">Everything.</span>
+          <span className="text-accent">khó nói.</span>
         </h1>
 
         <p
@@ -84,16 +84,16 @@ export function Hero() {
           data-hero="sub"
           className="prose-measure mt-7 text-[1.0625rem] font-light leading-relaxed text-muted-foreground"
         >
-          Hand-tied arrangements, seasonal wedding flowers, and same-day London delivery — made by
-          hand, never from a catalogue.
+          Chọn bó, chọn cỡ, viết lời chúc — thợ hoa cắm ngay trong ngày và gửi ảnh bó thật cho bạn
+          trước khi giao tận tay người nhận khắp nội thành Hà Nội.
         </p>
 
         <div data-anim="fade-up" data-hero="cta" className="mt-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
           <Button variant="primary" size="lg" asChild className="w-full sm:w-auto">
-            <Link to="/products">Browse arrangements →</Link>
+            <Link to="/products">Đặt hoa ngay →</Link>
           </Button>
           <Button variant="ghost" size="lg" asChild className="w-full sm:w-auto">
-            <a href="#weddings">Wedding flowers</a>
+            <Link to="/dat-hoa-theo-yeu-cau">Đặt theo yêu cầu</Link>
           </Button>
         </div>
 

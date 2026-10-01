@@ -37,7 +37,7 @@ export function DialogContent({
         <DialogPrimitive.Portal forceMount>
           <MotionOverlay
             forceMount
-            className="fixed inset-0 z-50 bg-background/80 backdrop-blur-[2px]"
+            className="fixed inset-0 z-60 bg-background/80 backdrop-blur-[2px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -46,7 +46,7 @@ export function DialogContent({
           <MotionContent
             forceMount
             className={cn(
-              "fixed left-1/2 top-1/2 z-50 w-[min(32rem,calc(100vw-2rem))]",
+              "fixed left-1/2 top-1/2 z-60 w-[min(32rem,calc(100vw-2rem))]",
               "-translate-x-1/2 -translate-y-1/2",
               "border border-border bg-surface p-6 shadow-[0_24px_64px_rgba(0,0,0,0.55)]",
               className,

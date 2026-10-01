@@ -6,7 +6,9 @@ import { cn } from "@/lib/utils";
  */
 const STATUS: Record<string, { label: string; className: string }> = {
   PENDING: { label: "Chờ xác nhận", className: "border-border-strong text-muted-foreground" },
-  CONFIRMED: { label: "Đã xác nhận", className: "border-accent text-accent" },
+  CONFIRMED: { label: "Đã xác nhận", className: "border-foreground/60 text-foreground" },
+  PREPARING: { label: "Đang cắm hoa", className: "border-accent text-accent" },
+  SHIPPING: { label: "Đang giao", className: "border-accent bg-accent text-background" },
   DELIVERED: { label: "Đã giao", className: "border-success text-success" },
   CANCELLED: { label: "Đã huỷ", className: "border-danger text-danger" },
 };

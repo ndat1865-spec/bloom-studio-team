@@ -2,14 +2,17 @@ import { useEffect, useRef, useState } from "react";
 import { Check, Plus } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import type { Product } from "@/lib/api";
+import { flyToCart } from "@/lib/flyToCart";
+import { resolveImageUrl } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /**
- * Nut tron them nhanh vao gio, dat o goc trai duoi cua anh san pham.
+ * Nut tron them nhanh vao gio (co bo Tieu chuan), dat o goc trai duoi cua anh bo hoa.
  *
  * - LUON hien thi (khong phai chi khi hover): man hinh cam ung khong co hover
  * - 44px de bam duoc tren dien thoai
- * - Sau khi them: doi sang icon check ~1,2s de khach biet thao tac da duoc ghi nhan
+ * - Bam: anh bo hoa bay vao icon gio tren header (lib/flyToCart), cham gio moi cong so luong
+ * - Sau khi bam: doi sang icon check ~1,2s de khach biet thao tac da duoc ghi nhan
  * - stopPropagation + preventDefault vi the san pham co mot lien ket phu toan bo the
  */
 export function AddToCartButton({
@@ -32,7 +35,10 @@ export function AddToCartButton({
     event.preventDefault();
     event.stopPropagation();
 
-    add(product, 1);
+    // Bay tu anh cua chinh the san pham; the khong co anh thi bay tu nut
+    const card = event.currentTarget.closest("article");
+    const source = card?.querySelector("img") ?? event.currentTarget;
+    void flyToCart(source, resolveImageUrl(product.imageUrl)).then(() => add(product, 1));
     setJustAdded(true);
     if (timer.current) window.clearTimeout(timer.current);
     timer.current = window.setTimeout(() => setJustAdded(false), 1200);
@@ -42,7 +48,7 @@ export function AddToCartButton({
     <button
       type="button"
       onClick={handleClick}
-      aria-label={`Thêm ${product.name} vào giỏ hàng`}
+      aria-label={`Thêm ${product.name} (cỡ tiêu chuẩn) vào giỏ hoa`}
       className={cn(
         "relative z-20 inline-flex size-11 items-center justify-center rounded-chip",
         "bg-accent text-background shadow-[0_6px_20px_rgba(0,0,0,0.45)]",
@@ -58,7 +64,7 @@ export function AddToCartButton({
         <Plus className="size-5" aria-hidden="true" />
       )}
       <span className="sr-only" aria-live="polite">
-        {justAdded ? `Đã thêm ${product.name} vào giỏ hàng` : ""}
+        {justAdded ? `Đã thêm ${product.name} vào giỏ hoa` : ""}
       </span>
     </button>
   );

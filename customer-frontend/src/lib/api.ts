@@ -166,6 +166,194 @@ export type Product = {
   stockQuantity: number;
   imageUrl: string | null;
   category: CategorySummary | null;
+  /** Ma dip (BIRTHDAY, LOVE...). Nhan tieng Viet lay tu getProductAttributes(). */
+  occasions: string[];
+  /** Ma mau (RED, PINK...) hoac null neu chua phan loai. */
+  color: string | null;
+  /** Diem trung binh 1 chu so thap phan, null khi chua co danh gia nao. */
+  ratingAverage: number | null;
+  ratingCount: number;
+  /** Thanh phan bo hoa (loai hoa, la phu, giay goi). Null o san pham chua nhap. */
+  composition: string | null;
+  /** So bong cua co Tieu chuan; null = khong tinh theo bong (tron goi, trang tri). */
+  stemCount: number | null;
+  /** true = co ba co Nho / Tieu chuan / Lon. */
+  sized: boolean;
+  /** Phai dat truoc toi thieu bao nhieu ngay; 0 = giao trong ngay duoc. */
+  leadDays: number;
+  /** Cac co khach chon duoc, gia do backend tinh. Luon co it nhat dong STANDARD. */
+  sizes: BouquetSizeOption[];
+};
+
+export type BouquetSizeOption = { code: string; label: string; stems: number | null; price: number };
+
+/** Mot lua chon co nhan tieng Viet — dung cho dip, mau. */
+export type LabeledOption = { value: string; label: string };
+
+export type ProductAttributes = { occasions: LabeledOption[]; colors: LabeledOption[] };
+
+/* ---- Danh gia san pham ---- */
+
+export type Review = {
+  id: number;
+  productId: number;
+  productName: string;
+  /** Ban cong khai da che bot ("cu*****r"); ADMIN va chinh chu thay ten day du. */
+  username: string;
+  rating: number;
+  comment: string | null;
+  hidden: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ReviewSummary = {
+  average: number | null;
+  count: number;
+  /** Khoa "1".."5" -> so danh gia */
+  counts: Record<string, number>;
+};
+
+export type ReviewEligibility = {
+  canReview: boolean;
+  reason: string | null;
+  myReview: Review | null;
+};
+
+/* ---- Tuy chon thanh toan + ma giam gia ---- */
+
+export type PricedOption = { value: string; label: string; description: string | null; price: number };
+
+export type OrderOptions = {
+  cards: PricedOption[];
+  addons: PricedOption[];
+  slots: { value: string; label: string; startHour: number; endHour: number }[];
+  freeDeliveryThreshold: number;
+  /** Phi co dinh - chi dung khi ghnEnabled = false. */
+  deliveryFee: number;
+  /** true: dia chi chon theo danh muc GHN, phi giao hang hoi GHN. */
+  ghnEnabled: boolean;
+  /** Hom nay theo gio Viet Nam (yyyy-MM-dd) - dung thay dong ho may khach. */
+  today: string;
+  /** Sau gio nay khong nhan don giao trong ngay. */
+  sameDayCutoffHour: number;
+  sameDayOpen: boolean;
+  /** Tinh GHN studio giao toi; rong = moi noi. */
+  deliveryProvinceIds: number[];
+  deliveryAreaLabel: string;
+  /** Gio hien tai o Viet Nam "HH:mm" - khoa khung giao da qua theo gio server. */
+  nowTime: string;
+  /** Khung giao 1 tieng: gio bat dau som nhat / muon nhat (8 va 20). */
+  firstDeliveryHour: number;
+  lastDeliveryHour: number;
+  /** Can bao nhieu tieng cam hoa truoc gio giao. */
+  prepHours: number;
+};
+
+/* ---- Giao hang GHN + thanh toan truc tuyen ---- */
+
+export type Place = { id: number; name: string };
+export type Ward = { code: string; name: string };
+
+export type PaymentMethodCode = "COD" | "VNPAY" | "MOMO" | "ZALOPAY";
+export type OnlineProvider = Exclude<PaymentMethodCode, "COD">;
+
+export type PaymentMethodOption = {
+  code: PaymentMethodCode;
+  label: string;
+  description: string;
+  online: boolean;
+};
+
+/** Mot giao dich o payment-service. payUrl chi co khi con cho thanh toan. */
+export type Payment = {
+  id: number;
+  orderId: number;
+  orderCode: string;
+  provider: OnlineProvider;
+  providerLabel: string;
+  amount: number;
+  status: "PENDING" | "SUCCESS" | "FAILED" | "REFUNDING" | "REFUNDED";
+  txnRef: string;
+  providerTxnId: string | null;
+  message: string | null;
+  payUrl: string | null;
+  refundRequired: boolean;
+  createdAt: string;
+  paidAt: string | null;
+  refundTxnId: string | null;
+  refundedAt: string | null;
+};
+
+export type PublicVoucher = {
+  code: string;
+  description: string | null;
+  type: "PERCENT" | "FIXED";
+  value: number;
+  maxDiscount: number | null;
+  minOrderValue: number;
+  endDate: string | null;
+};
+
+export type VoucherCheck = { code: string; description: string | null; discount: number };
+
+/** Trang thai mot ma trong vi, xet cho don dang dat (hoac chi xet con han khi khong gui amount). */
+export type MyVoucherStatus =
+  | "USABLE"
+  | "BELOW_MIN"
+  | "ALREADY_USED"
+  | "EXPIRED"
+  | "USED_UP"
+  | "NOT_STARTED"
+  | "INACTIVE";
+
+/** Mot ma trong vi cua khach: ma chung dang chay hoac ma studio tang rieng (personal). */
+export type MyVoucher = {
+  code: string;
+  description: string | null;
+  type: "PERCENT" | "FIXED";
+  value: number;
+  maxDiscount: number | null;
+  minOrderValue: number | null;
+  startDate: string | null;
+  endDate: string | null;
+  personal: boolean;
+  status: MyVoucherStatus;
+  /** Ly do khong dung duoc (null khi USABLE). */
+  reason: string | null;
+  /** So tien giam cho don `amount` da gui (0 khi khong dung duoc). */
+  discount: number;
+};
+
+export type Voucher = {
+  id: number;
+  code: string;
+  description: string | null;
+  type: "PERCENT" | "FIXED";
+  value: number;
+  maxDiscount: number | null;
+  minOrderValue: number;
+  startDate: string | null;
+  endDate: string | null;
+  usageLimit: number | null;
+  usedCount: number;
+  onePerCustomer: boolean;
+  active: boolean;
+  createdAt: string;
+};
+
+export type VoucherPayload = {
+  code: string;
+  description: string | null;
+  type: "PERCENT" | "FIXED";
+  value: number;
+  maxDiscount: number | null;
+  minOrderValue: number | null;
+  startDate: string | null;
+  endDate: string | null;
+  usageLimit: number | null;
+  onePerCustomer: boolean;
+  active: boolean;
 };
 
 export type Category = { id: number; name: string; productCount: number };
@@ -184,6 +372,8 @@ export type ApiKey = {
   createdAt: string;
   expiresAt: string | null;
   lastUsedAt: string | null;
+  /** So request/phut toi da, Gateway chan bang 429 khi vuot. */
+  rateLimitPerMinute: number;
 };
 
 /** Chi tra ve dung mot lan, ngay sau khi cap khoa. */
@@ -194,6 +384,8 @@ export type CreateApiKeyPayload = {
   scopes: string[];
   /** null = khong het han. */
   daysValid: number | null;
+  /** null = mac dinh 60. */
+  rateLimitPerMinute?: number | null;
 };
 
 export type Page<T> = {
@@ -217,16 +409,26 @@ export type Page<T> = {
 export type AuthUser = {
   id: number;
   username: string;
-  role: "ADMIN" | "CUSTOMER";
+  role: "ADMIN" | "STAFF" | "CUSTOMER";
   fullName?: string | null;
   email?: string | null;
   phone?: string | null;
   address?: string | null;
   city?: string | null;
+  /** Dia chi mac dinh theo GHN: ba ma di cung nhau, co du ca ba hoac null ca ba. */
+  provinceId?: number | null;
+  districtId?: number | null;
+  wardCode?: string | null;
+  /** "Phuong X, Quan Y, Tinh Z" ghep san luc luu, chi de hien thi. */
+  areaLabel?: string | null;
   /** Ho ten that neu co, khong thi username. Backend tinh san. */
   displayName?: string | null;
   /** Da du phone + address de dien san form thanh toan chua. */
   hasDefaultAddress?: boolean;
+  /** Da lien ket tai khoan Google - dang nhap bang Google duoc. */
+  googleLinked?: boolean;
+  /** Anh dai dien tu Google - null thi hien chu cai dau. */
+  avatarUrl?: string | null;
 };
 
 /** Body cua PUT /users/{id}/profile. Chuoi rong = xoa trong truong do. */
@@ -236,6 +438,14 @@ export type ProfilePayload = {
   phone: string;
   address: string;
   city: string;
+  /**
+   * Dia chi GHN. Bo qua wardCode = giu nguyen; wardCode "" = xoa ca bo;
+   * co wardCode thi phai gui kem provinceId + districtId.
+   */
+  provinceId?: number | null;
+  districtId?: number | null;
+  wardCode?: string;
+  areaLabel?: string;
 };
 
 /* ---- Tong quan ADMIN: PHAN MO RONG ngoai SOS01-SOS10 ---- */
@@ -250,7 +460,7 @@ export type LoginResponse = {
   userId: number;
   token: string;
   username: string;
-  role: "ADMIN" | "CUSTOMER";
+  role: "ADMIN" | "STAFF" | "CUSTOMER";
 };
 
 /** Phan so lieu do order-service tu tinh duoc tren CSDL cua chinh no. */
@@ -287,6 +497,11 @@ export type OrderItem = {
   quantity: number;
   lineTotal: number;
   imageUrl: string | null;
+  /** Ma co bo, null o don cu va dong hoa theo yeu cau. */
+  size: string | null;
+  /** Vd. "Lớn · 23 bông"; dong hoa theo yeu cau thi la dip tang. */
+  sizeLabel: string | null;
+  customRequestId: number | null;
 };
 
 export type Order = {
@@ -304,6 +519,98 @@ export type Order = {
   createdAt: string;
   username: string | null;
   items: OrderItem[];
+  // ---- qua tang ----
+  senderName: string | null;
+  senderPhone: string | null;
+  anonymousSender: boolean;
+  cardType: string;
+  cardTypeLabel: string;
+  cardMessage: string | null;
+  timeSlot: string | null;
+  timeSlotLabel: string | null;
+  /** Khung giao 1 tieng khach chon: gio bat dau (10 = 10:00 – 11:00); null = ca buoi / ca ngay. */
+  deliveryHour?: number | null;
+  deliveryTimeLabel?: string | null;
+  addons: { code: string; name: string; unitPrice: number; quantity: number; lineTotal: number }[];
+  // ---- tien: don cu truoc khi co tinh nang thi bang 0 ----
+  extrasTotal: number;
+  discount: number;
+  voucherCode: string | null;
+  // ---- thanh toan ----
+  paymentMethod: PaymentMethodCode;
+  paymentMethodLabel: string;
+  paymentStatus: "UNPAID" | "PAID" | "REFUND_PENDING" | "REFUNDED";
+  paymentStatusLabel: string;
+  paidAt: string | null;
+  // ---- giao hang GHN: null o don dia chi go tu do ----
+  provinceId: number | null;
+  districtId: number | null;
+  wardCode: string | null;
+  ghnOrderCode: string | null;
+  shippingStatus: string | null;
+  shippingStatusLabel: string | null;
+  expectedDeliveryAt: string | null;
+  shippingUpdatedAt: string | null;
+  /** Hanh trinh van don GHN, cu nhat truoc. */
+  shippingEvents?: { status: string; label: string; at: string }[];
+  // Thoi diem don buoc vao tung trang thai (don cu co the null)
+  confirmedAt?: string | null;
+  preparingAt?: string | null;
+  shippingAt?: string | null;
+  deliveredAt?: string | null;
+  cancelledAt?: string | null;
+  /** Anh bo hoa that cua hang chup truoc khi giao. */
+  arrangementPhotoUrl?: string | null;
+  arrangementPhotoAt?: string | null;
+};
+
+export type CustomRequestStatus = "NEW" | "QUOTED" | "ORDERED" | "REJECTED" | "CANCELLED";
+
+/** Yeu cau dat hoa theo y khach. */
+export type CustomRequest = {
+  id: number;
+  code: string;
+  username: string | null;
+  occasion: string | null;
+  budget: number;
+  colors: string | null;
+  /** Lua chon tren trang Dat hoa theo yeu cau (nhan tieng Viet). */
+  arrangement: string | null;
+  sizeOption: string | null;
+  flowers: string | null;
+  style: string | null;
+  wrapping: string | null;
+  avoid: string | null;
+  description: string;
+  referenceImageUrl: string | null;
+  desiredDate: string | null;
+  contactPhone: string | null;
+  status: CustomRequestStatus;
+  statusLabel: string;
+  quotedPrice: number | null;
+  shopNote: string | null;
+  quotedAt: string | null;
+  handledBy: string | null;
+  createdAt: string;
+  orderId: number | null;
+  orderCode: string | null;
+};
+
+export type CreateCustomRequestPayload = {
+  occasion: string | null;
+  /** Bat buoc: bo, gio, hop, binh, ke, hoa cuoi. */
+  arrangement: string;
+  sizeOption: string | null;
+  flowers: string | null;
+  colors: string | null;
+  style: string | null;
+  wrapping: string | null;
+  avoid: string | null;
+  budget: number;
+  /** Ghi chu them - khong bat buoc. */
+  description: string | null;
+  desiredDate: string | null;
+  contactPhone: string | null;
 };
 
 export type CreateOrderPayload = {
@@ -312,13 +619,89 @@ export type CreateOrderPayload = {
   address: string;
   note: string | null;
   deliveryDate: string | null;
-  /** CHI productId + quantity. Gia do backend tu doc tu CSDL va tinh lai. */
-  items: { productId: number; quantity: number }[];
+  /**
+   * Bo hoa: productId + co bo + so luong. Hoa theo yeu cau: customRequestId.
+   * KHONG co gia - backend tu hoi product-service / lay gia studio da bao.
+   */
+  items: { productId?: number; size?: string; customRequestId?: number; quantity: number }[];
+  senderName?: string | null;
+  senderPhone?: string | null;
+  anonymousSender?: boolean;
+  cardType?: string;
+  cardMessage?: string | null;
+  timeSlot?: string | null;
+  /** Khung giao 1 tieng: gio bat dau 8..20. */
+  deliveryHour?: number | null;
+  /** CHI ma qua + so luong, gia do backend tu tra. */
+  addons?: { code: string; quantity: number }[];
+  voucherCode?: string | null;
+  /** Ma GHN - bat buoc khi options.ghnEnabled. address khi do chi la so nha + duong. */
+  provinceId?: number | null;
+  districtId?: number | null;
+  wardCode?: string | null;
+  /** Mac dinh COD. */
+  paymentMethod?: PaymentMethodCode;
+};
+
+/* ---- Chat khach - studio (chat-service) ---- */
+
+export type ChatStatus = "AI" | "WAITING_STAFF" | "WITH_STAFF" | "CLOSED";
+
+export type ChatMessage = {
+  id: number;
+  senderType: "CUSTOMER" | "AI" | "STAFF" | "SYSTEM";
+  senderName: string | null;
+  content: string;
+  createdAt: string;
+  /** Nut tra loi nhanh cua tro ly tu dong - bam thi gui action ve bot. */
+  quickReplies: ChatQuickReply[];
+  /** The bo hoa tro ly goi y. */
+  cards: ChatProductCard[];
+};
+
+export type ChatQuickReply = { label: string; action: string };
+
+export type ChatProductCard = {
+  id: number;
+  name: string;
+  imageUrl: string | null;
+  priceFrom: number | null;
+  sizeCount: number;
+  stems: number | null;
+  leadDays: number;
+  link: string;
+};
+
+export type ChatConversation = {
+  id: number;
+  userId: number;
+  username: string | null;
+  status: ChatStatus;
+  statusLabel: string;
+  assignedStaff: string | null;
+  createdAt: string;
+  lastMessageAt: string;
+  lastMessagePreview: string | null;
+  unreadForStaff: number;
+  unreadForCustomer: number;
+  /** Tro ly AI dang soan tra loi. */
+  aiPending: boolean;
+};
+
+/** Mot lan hoi: trang thai cuoc chat + cac tin moi. conversation null = chua tung chat. */
+export type ChatSnapshot = {
+  conversation: ChatConversation | null;
+  messages: ChatMessage[];
+  aiEnabled: boolean;
 };
 
 export type ProductQuery = {
   name?: string;
   categoryId?: number | null;
+  occasion?: string | null;
+  color?: string | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
   page?: number;
   size?: number;
   sort?: string;
@@ -351,6 +734,21 @@ export const api = {
       body: { username, password },
       signal,
     });
+  },
+
+  /** Backend co bat Dang nhap bang Google khong, Client ID nao. */
+  getGoogleConfig(signal?: AbortSignal) {
+    return request<{ enabled: boolean; clientId: string | null }>("/auth/google/config", { signal });
+  },
+
+  /** Doi ID token Google lay JWT cua Bloom (chua co tai khoan thi backend tao tai khoan khach). */
+  googleLogin(credential: string) {
+    return request<LoginResponse>("/auth/google", { method: "POST", body: { credential } });
+  },
+
+  /** Gan tai khoan Google vao tai khoan dang dang nhap. */
+  linkGoogle(credential: string) {
+    return request<AuthUser>("/auth/me/google", { method: "POST", body: { credential } });
   },
 
   /**
@@ -422,6 +820,10 @@ export const api = {
     const params = new URLSearchParams();
     if (query.name?.trim()) params.set("name", query.name.trim());
     if (query.categoryId != null) params.set("categoryId", String(query.categoryId));
+    if (query.occasion) params.set("occasion", query.occasion);
+    if (query.color) params.set("color", query.color);
+    if (query.minPrice != null) params.set("minPrice", String(query.minPrice));
+    if (query.maxPrice != null) params.set("maxPrice", String(query.maxPrice));
     params.set("page", String(query.page ?? 0));
     params.set("size", String(query.size ?? 6));
     if (query.sort) params.set("sort", query.sort);
@@ -430,6 +832,86 @@ export const api = {
 
   getProduct(id: number, signal?: AbortSignal) {
     return request<Product>(`/products/${id}`, { signal });
+  },
+
+  /** Danh sach dip + mau kem nhan tieng Viet — nguon duy nhat, frontend khong tu khai. */
+  getProductAttributes(signal?: AbortSignal) {
+    return request<ProductAttributes>("/products/attributes", { signal });
+  },
+
+  /* ---- Danh gia san pham ---- */
+
+  listReviews(productId: number, page = 0, size = 5, signal?: AbortSignal) {
+    return request<Page<Review>>(`/products/${productId}/reviews?page=${page}&size=${size}`, { signal });
+  },
+
+  getReviewSummary(productId: number, signal?: AbortSignal) {
+    return request<ReviewSummary>(`/products/${productId}/reviews/summary`, { signal });
+  },
+
+  /** Can dang nhap. Cho biet co duoc danh gia khong va danh gia cu cua chinh minh. */
+  getReviewEligibility(productId: number, signal?: AbortSignal) {
+    return request<ReviewEligibility>(`/products/${productId}/reviews/eligibility`, { signal });
+  },
+
+  /** Tao moi hoac sua danh gia cua chinh minh. */
+  submitReview(productId: number, rating: number, comment: string | null) {
+    return request<Review>(`/products/${productId}/reviews`, {
+      method: "POST",
+      body: { rating, comment },
+    });
+  },
+
+  /** ADMIN: hidden = undefined -> tat ca. */
+  listAllReviews(hidden: boolean | undefined, page = 0, size = 10, signal?: AbortSignal) {
+    const params = new URLSearchParams({ page: String(page), size: String(size) });
+    if (hidden !== undefined) params.set("hidden", String(hidden));
+    return request<Page<Review>>(`/reviews?${params}`, { signal });
+  },
+
+  setReviewHidden(id: number, hidden: boolean) {
+    return request<Review>(`/reviews/${id}/visibility`, { method: "PATCH", body: { hidden } });
+  },
+
+  deleteReview(id: number) {
+    return request<void>(`/reviews/${id}`, { method: "DELETE" });
+  },
+
+  /* ---- Tuy chon thanh toan + ma giam gia ---- */
+
+  getOrderOptions(signal?: AbortSignal) {
+    return request<OrderOptions>("/orders/options", { signal });
+  },
+
+  listPublicVouchers(signal?: AbortSignal) {
+    return request<PublicVoucher[]>("/vouchers/public", { signal });
+  },
+
+  /** Vi ma cua toi. amount = gia tri don dang dat, de server bao ma nao dung duoc, giam bao nhieu. */
+  listMyVouchers(amount?: number, signal?: AbortSignal) {
+    const query = amount != null ? `?amount=${Math.round(amount)}` : "";
+    return request<MyVoucher[]>(`/vouchers/mine${query}`, { signal });
+  },
+
+  /** Xem truoc so tien giam. Khi dat hang that server tinh lai tu dau. */
+  checkVoucher(code: string, amount: number) {
+    return request<VoucherCheck>("/vouchers/check", { method: "POST", body: { code, amount } });
+  },
+
+  listVouchers(signal?: AbortSignal) {
+    return request<Voucher[]>("/vouchers", { signal });
+  },
+
+  createVoucher(payload: VoucherPayload) {
+    return request<Voucher>("/vouchers", { method: "POST", body: payload });
+  },
+
+  updateVoucher(id: number, payload: VoucherPayload) {
+    return request<Voucher>(`/vouchers/${id}`, { method: "PUT", body: payload });
+  },
+
+  deleteVoucher(id: number) {
+    return request<void>(`/vouchers/${id}`, { method: "DELETE" });
   },
 
   createProduct(product: ProductPayload) {
@@ -465,6 +947,106 @@ export const api = {
 
   getOrder(id: number, signal?: AbortSignal) {
     return request<Order>(`/orders/${id}`, { signal });
+  },
+
+  /* ---- Chat voi studio ---- */
+
+  /** Cuoc chat cua toi + tin moi sau afterId (bo trong = tai lan dau). */
+  getMyChat(afterId?: number | null, signal?: AbortSignal) {
+    const query = afterId != null ? `?afterId=${afterId}` : "";
+    return request<ChatSnapshot>(`/chat/me${query}`, { signal });
+  },
+
+  /** action: ma lenh cua nut tra loi nhanh (bo trong khi khach tu go). */
+  sendChat(content: string, action?: string | null) {
+    return request<ChatSnapshot>("/chat/me/messages", { method: "POST", body: { content, action: action ?? null } });
+  },
+
+  requestChatStaff() {
+    return request<ChatSnapshot>("/chat/me/handoff", { method: "POST" });
+  },
+
+  /* ---- Dat hoa theo yeu cau ---- */
+
+  createCustomRequest(payload: CreateCustomRequestPayload) {
+    return request<CustomRequest>("/custom-requests", { method: "POST", body: payload });
+  },
+
+  uploadCustomRequestImage(id: number, file: File) {
+    const form = new FormData();
+    form.append("file", file);
+    return request<CustomRequest>(`/custom-requests/${id}/reference-image`, { method: "POST", body: form });
+  },
+
+  listMyCustomRequests(page = 0, size = 20, signal?: AbortSignal) {
+    const params = new URLSearchParams({ page: String(page), size: String(size) });
+    return request<Page<CustomRequest>>(`/custom-requests/my?${params}`, { signal });
+  },
+
+  cancelCustomRequest(id: number) {
+    return request<CustomRequest>(`/custom-requests/${id}`, { method: "DELETE" });
+  },
+
+  /* ---- Giao hang GHN (qua order-service; token GHN khong bao gio ra trinh duyet) ---- */
+
+  listProvinces(signal?: AbortSignal) {
+    return request<Place[]>("/shipping/provinces", { signal });
+  },
+
+  listDistricts(provinceId: number, signal?: AbortSignal) {
+    return request<Place[]>(`/shipping/districts?provinceId=${provinceId}`, { signal });
+  },
+
+  listWards(districtId: number, signal?: AbortSignal) {
+    return request<Ward[]>(`/shipping/wards?districtId=${districtId}`, { signal });
+  },
+
+  /** Xem truoc phi GHN. Khi dat hang server hoi GHN lai tu dau. */
+  quoteShipping(districtId: number, wardCode: string, itemCount: number, signal?: AbortSignal) {
+    return request<{ fee: number; provider: string }>("/shipping/fee", {
+      method: "POST",
+      body: { districtId, wardCode, itemCount },
+      signal,
+    });
+  },
+
+  /** ADMIN: tao van don GHN cho don. */
+  createShipment(orderId: number) {
+    return request<Order>(`/orders/${orderId}/shipment`, { method: "POST" });
+  },
+
+  /** Hoi GHN trang thai van don moi nhat. */
+  refreshShipment(orderId: number) {
+    return request<Order>(`/orders/${orderId}/shipment/refresh`, { method: "POST" });
+  },
+
+  /* ---- Thanh toan truc tuyen (payment-service) ---- */
+
+  listPaymentMethods(signal?: AbortSignal) {
+    return request<PaymentMethodOption[]>("/payments/methods", { signal });
+  },
+
+  /** Tao giao dich, tra ve payUrl. KHONG gui so tien: server lay tu don. */
+  createPayment(orderId: number, provider: OnlineProvider) {
+    return request<Payment>("/payments", { method: "POST", body: { orderId, provider } });
+  },
+
+  /** Chuyen nguyen tham so cong thanh toan gan vao URL tro ve de server kiem chu ky. */
+  confirmPaymentReturn(params: Record<string, string>) {
+    return request<Payment>("/payments/return", { method: "POST", body: params });
+  },
+
+  listOrderPayments(orderId: number, signal?: AbortSignal) {
+    return request<Payment[]>(`/payments/order/${orderId}`, { signal });
+  },
+
+  refreshPayment(paymentId: number) {
+    return request<Payment>(`/payments/${paymentId}/refresh`, { method: "POST" });
+  },
+
+  /** ADMIN: hoan toan bo tien qua API cua cong thanh toan. */
+  refundPayment(paymentId: number, reason?: string) {
+    return request<Payment>(`/payments/${paymentId}/refund`, { method: "POST", body: { reason: reason ?? null } });
   },
 
   listOrders(page = 0, size = 10, signal?: AbortSignal) {
@@ -505,6 +1087,11 @@ export const api = {
     return request<ApiKeyCreated>("/api-keys", { method: "POST", body: payload });
   },
 
+  /** Doi han muc; Gateway nho ket qua kiem tra khoa nen co hieu luc cham toi 1 phut. */
+  updateApiKeyRateLimit(id: number, rateLimitPerMinute: number) {
+    return request<ApiKey>(`/api-keys/${id}/rate-limit`, { method: "PATCH", body: { rateLimitPerMinute } });
+  },
+
   revokeApiKey(id: number) {
     return request<ApiKey>(`/api-keys/${id}/revoke`, { method: "POST" });
   },
@@ -521,4 +1108,6 @@ export type ProductPayload = {
   /** Bat buoc — backend co @NotNull, thieu truong nay la 400 cho moi lenh luu. */
   stockQuantity: number;
   category: { id: number } | null;
+  occasions: string[];
+  color: string | null;
 };

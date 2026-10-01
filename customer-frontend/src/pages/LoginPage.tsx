@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { Notice } from "@/components/ui/feedback";
 import { AuthLayout } from "@/components/site/AuthLayout";
+import { GoogleSignIn } from "@/components/auth/GoogleSignIn";
 import { useAuth } from "@/context/AuthContext";
 import { ApiError, NetworkError, api, TOKEN_KEY } from "@/lib/api";
 
@@ -122,6 +123,8 @@ export default function LoginPage() {
           )}
         </Button>
       </form>
+
+      <GoogleSignIn text="signin_with" />
     </AuthLayout>
   );
 }

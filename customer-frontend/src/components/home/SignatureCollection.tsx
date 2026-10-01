@@ -21,13 +21,13 @@ type Piece = {
 const COLUMNS: Piece[][] = [
   [
     {
-      name: "Amber & Dried",
+      name: "Hổ phách & hoa khô",
       src: "/images/collection-1.jpg",
       alt: "Bó hoa khô tông hổ phách với cỏ pampas, chụp trên nền studio trầm",
       ratio: "aspect-[3/4]",
     },
     {
-      name: "Black Dahlia",
+      name: "Thược dược sẫm",
       src: "/images/collection-4.jpg",
       alt: "Cận cảnh thược dược tím sẫm trên nền đen, gần macro",
       ratio: "aspect-[4/3]",
@@ -35,13 +35,13 @@ const COLUMNS: Piece[][] = [
   ],
   [
     {
-      name: "Ceremony Whites",
+      name: "Trắng lễ cưới",
       src: "/images/collection-3.jpg",
       alt: "Những bó cẩm chướng hồng và trắng gói giấy, chụp ngoài trời",
       ratio: "aspect-[4/3]",
     },
     {
-      name: "White Anthurium",
+      name: "Cúc trắng",
       src: "/images/collection-2.jpg",
       alt: "Bông cúc trắng lớn trên nền xanh thẫm, phong cách biên tập",
       ratio: "aspect-[3/4]",
@@ -61,8 +61,8 @@ export function SignatureCollection() {
         <SectionHeading
           id="collection-heading"
           eyebrow="Tháng 9 · Dahlia, cẩm tú cầu, hoa khô"
-          title="This Season"
-          description="Bốn tác phẩm của mùa này, chụp trong studio ở EC1. Màu hoa không chỉnh sửa."
+          title="Hoa mùa này"
+          description="Bốn tác phẩm của mùa này, chụp trong studio ở Hà Nội. Màu hoa không chỉnh sửa."
         />
 
         <div className="mt-14 grid grid-cols-1 gap-0.5 sm:grid-cols-2">

@@ -10,11 +10,11 @@ import { InitialsAvatar } from "@/components/site/InitialsAvatar";
 import { ADMIN_APP_URL } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
+// Nhan tieng Viet dai hon ban tieng Anh cu: giu it muc de thanh menu khong xuong dong o 1024px
 const SECTION_LINKS = [
-  { label: "Arrangements", href: "/#arrangements" },
-  { label: "Weddings", href: "/#weddings" },
-  { label: "About", href: "/#about" },
-  { label: "Care", href: "/#process" },
+  { label: "Theo dịp", href: "/#occasions" },
+  { label: "Hoa cưới", href: "/#weddings" },
+  { label: "Cách đặt", href: "/#process" },
 ];
 
 export function SiteHeader() {
@@ -42,7 +42,10 @@ export function SiteHeader() {
   }, [open]);
 
   // Menu quan tri nam o admin-frontend; ADMIN chi thay mot link sang do trong menu tai khoan
-  const appLinks = [{ label: "Shop", to: "/products" }];
+  const appLinks = [
+    { label: "Mẫu hoa", to: "/products" },
+    { label: "Theo yêu cầu", to: "/dat-hoa-theo-yeu-cau" },
+  ];
 
   function handleSignOut() {
     signOut();
@@ -59,12 +62,12 @@ export function SiteHeader() {
           Bloom Studio
         </Link>
 
-        <nav aria-label="Điều hướng chính" className="hidden items-center gap-8 lg:flex">
+        <nav aria-label="Điều hướng chính" className="hidden items-center gap-6 lg:flex xl:gap-8">
           {SECTION_LINKS.map((link) => (
             <a
               key={link.label}
               href={link.href}
-              className="label-micro text-muted-foreground transition-colors hover:text-foreground"
+              className="label-micro whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
             >
               {link.label}
             </a>
@@ -75,7 +78,7 @@ export function SiteHeader() {
               to={link.to}
               className={({ isActive }) =>
                 cn(
-                  "label-micro transition-colors hover:text-foreground",
+                  "label-micro whitespace-nowrap transition-colors hover:text-foreground",
                   isActive ? "text-accent" : "text-muted-foreground",
                 )
               }
@@ -94,16 +97,16 @@ export function SiteHeader() {
             <>
               {/*
                 Loi vao /login cho khach chua dang nhap. De dang chu (label-micro) thay vi nut,
-                giu "Order flowers →" la CTA noi bat duy nhat cua navbar theo DESIGN.md.
+                giu "Đặt hoa →" la CTA noi bat duy nhat cua navbar theo DESIGN.md.
               */}
               <Link
                 to="/login"
-                className="label-micro text-muted-foreground transition-colors hover:text-foreground"
+                className="label-micro whitespace-nowrap text-muted-foreground transition-colors hover:text-foreground"
               >
                 Đăng nhập
               </Link>
               <Button variant="outline" size="sm" asChild>
-                <Link to="/products">Order flowers →</Link>
+                <Link to="/products">Đặt hoa →</Link>
               </Button>
             </>
           )}
@@ -164,6 +167,7 @@ export function SiteHeader() {
                     <div className="mb-4 flex items-center gap-3 border-b border-border pb-4">
                       <InitialsAvatar
                         name={user.displayName || user.fullName || user.username}
+                        src={user.avatarUrl}
                         size="md"
                       />
                       <div className="min-w-0">
@@ -171,12 +175,12 @@ export function SiteHeader() {
                           {user.displayName || user.fullName || user.username}
                         </p>
                         <p className="label-micro mt-1 text-accent">
-                          {user.role === "ADMIN" ? "Quản trị viên" : "Khách hàng"}
+                          {user.role === "ADMIN" ? "Quản trị viên" : user.role === "STAFF" ? "Nhân viên" : "Khách hàng"}
                         </p>
                       </div>
                     </div>
 
-                    {user.role === "ADMIN" ? (
+                    {user.role === "ADMIN" || user.role === "STAFF" ? (
                       <a
                         href={ADMIN_APP_URL}
                         className="label-micro block py-3.5 text-foreground transition-colors hover:text-accent"
