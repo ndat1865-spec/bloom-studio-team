@@ -4,23 +4,23 @@ import { SectionHeading } from "@/components/site/SectionHeading";
 
 const ROWS = [
   {
-    name: "Bespoke Arrangements",
-    description: "Hand-tied, seasonal stems, cut and built the day you order.",
-    price: "from £45",
+    name: "Bó hoa & bình hoa",
+    description: "Bó tay theo mùa, cắt và cắm ngay ngày bạn đặt. Ba cỡ bó, giao trong ngày.",
+    price: "từ 340.000₫",
     to: "/products?category=1",
     image: "/images/collection-1.jpg",
   },
   {
-    name: "Event Florals",
-    description: "Corporate events, intimate dinners, installations.",
-    price: "from £180",
+    name: "Hoa sự kiện",
+    description: "Khai trương, tiệc công ty, bàn tiệc, vách hoa. Đặt trước 2–3 ngày.",
+    price: "từ 1.800.000₫",
     to: "/products?category=2",
     image: "/images/collection-3.jpg",
   },
   {
-    name: "Wedding Flowers",
-    description: "Full styling from bridal party to reception.",
-    price: "from £800",
+    name: "Hoa cưới",
+    description: "Hoa cầm tay cô dâu, cổng hoa, trang trí tiệc. Đặt trước từ 3 ngày.",
+    price: "từ 8.000.000₫",
     to: "/products?category=3",
     image: "/images/wedding-2.jpg",
   },
@@ -61,8 +61,8 @@ export function ArrangementTypes() {
       <div className="shell">
         <SectionHeading
           id="arrangements-heading"
-          eyebrow="Bespoke · Events · Weddings"
-          title="Our Work"
+          eyebrow="Bó hoa · Sự kiện · Cưới hỏi"
+          title="Studio nhận làm"
           description="Ba cách chúng tôi làm việc cùng bạn — từ một bó hoa cắt trong ngày đến toàn bộ phần hoa cho một đám cưới."
         />
       </div>

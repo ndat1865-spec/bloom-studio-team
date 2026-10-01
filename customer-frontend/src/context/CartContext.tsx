@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import type { Product } from "@/lib/api";
+import type { BouquetSizeOption, CustomRequest, Product } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 
 /**
@@ -16,17 +16,47 @@ function keyFor(userId: number | null): string {
 
 const MAX_QUANTITY = 99;
 
-/** Mien phi giao hang tu nguong nay — khop voi "Free delivery over £80" tren landing page. */
-export const FREE_DELIVERY_THRESHOLD = 80;
-export const DELIVERY_FEE = 6.5;
+/**
+ * Mien phi giao hang tu nguong nay (VND) — khop voi order-service va landing page.
+ * DELIVERY_FEE chi la phi du phong khi chua cau hinh GHN; co GHN thi phi tinh theo dia chi
+ * o trang thanh toan.
+ */
+export const FREE_DELIVERY_THRESHOLD = 800_000;
+export const DELIVERY_FEE = 30_000;
 
+/**
+ * Mot dong gio: MOT trong hai loai.
+ *  - Bo hoa co san: productId + size. Cung bo o hai co la hai dong rieng.
+ *  - Hoa dat theo yeu cau da duoc bao gia: customRequestId, so luong luon la 1.
+ * `key` phan biet cac dong - thao tac sua / xoa deu theo key.
+ */
 export type CartLine = {
-  productId: number;
+  key: string;
+  productId: number | null;
+  /** Ma co bo (SMALL / STANDARD / LARGE); null o dong hoa theo yeu cau. */
+  size: string | null;
+  /** Vd. "Lớn · 23 bông" - chi de hien thi. */
+  sizeLabel: string | null;
+  customRequestId: number | null;
   name: string;
   price: number;
   imageUrl: string | null;
   quantity: number;
+  /** Phai dat truoc bao nhieu ngay - trang thanh toan dung de chan ngay giao. */
+  leadDays: number;
 };
+
+const DEFAULT_SIZE = "STANDARD";
+
+function productKey(productId: number, size: string): string {
+  return `p${productId}:${size}`;
+}
+
+/** Nhan co bo kem so bong: "Lớn · 23 bông". */
+// eslint-disable-next-line react-refresh/only-export-components
+export function sizeLabelOf(option: BouquetSizeOption): string {
+  return option.stems == null ? option.label : `${option.label} · ${option.stems} bông`;
+}
 
 type CartContextValue = {
   lines: CartLine[];
@@ -37,9 +67,11 @@ type CartContextValue = {
   total: number;
   /** Tang moi lan gio hang duoc them hang — dung de kich hoat hieu ung badge */
   bumpToken: number;
-  add: (product: Product, quantity?: number) => void;
-  setQuantity: (productId: number, quantity: number) => void;
-  remove: (productId: number) => void;
+  add: (product: Product, quantity?: number, size?: string) => void;
+  /** Cho yeu cau dat hoa da bao gia vao gio (thay dong cu cua chinh yeu cau do neu co). */
+  addCustomRequest: (request: CustomRequest) => void;
+  setQuantity: (key: string, quantity: number) => void;
+  remove: (key: string) => void;
   clear: () => void;
 };
 
@@ -53,8 +85,8 @@ const CartContext = createContext<CartContextValue | null>(null);
  * chua co gio thi gio cua khach duoc mang theo — dung nhu mong doi khi ai do
  * chon hoa xong moi dang nhap de dat.
  *
- * `price` o day CHI de hien thi. Khi dat hang, frontend chi gui productId + quantity;
- * backend tu doc gia tu CSDL va tinh lai toan bo (xem OrderService).
+ * `price` o day CHI de hien thi. Khi dat hang, frontend chi gui productId + co bo + so luong
+ * (hoac customRequestId); backend tu hoi gia va tinh lai toan bo (xem OrderService).
  */
 function readStored(storageKey: string): CartLine[] {
   try {
@@ -62,14 +94,33 @@ function readStored(storageKey: string): CartLine[] {
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (line): line is CartLine =>
-        typeof line === "object" &&
-        line !== null &&
-        typeof (line as CartLine).productId === "number" &&
-        typeof (line as CartLine).quantity === "number" &&
-        (line as CartLine).quantity > 0,
-    );
+    return parsed
+      .filter(
+        (line): line is Partial<CartLine> =>
+          typeof line === "object" &&
+          line !== null &&
+          (typeof (line as CartLine).productId === "number" ||
+            typeof (line as CartLine).customRequestId === "number") &&
+          typeof (line as CartLine).quantity === "number" &&
+          (line as CartLine).quantity > 0,
+      )
+      .map((line): CartLine => {
+        // Gio luu tu truoc khi co co bo: chi co productId -> coi la co Tieu chuan
+        const custom = line.customRequestId ?? null;
+        const size = custom != null ? null : (line.size ?? DEFAULT_SIZE);
+        return {
+          key: line.key ?? (custom != null ? `r${custom}` : productKey(line.productId as number, size ?? DEFAULT_SIZE)),
+          productId: line.productId ?? null,
+          size,
+          sizeLabel: line.sizeLabel ?? null,
+          customRequestId: custom,
+          name: line.name ?? "",
+          price: line.price ?? 0,
+          imageUrl: line.imageUrl ?? null,
+          quantity: line.quantity as number,
+          leadDays: line.leadDays ?? 0,
+        };
+      });
   } catch {
     // localStorage hong hoac JSON sai dinh dang -> gio rong, khong lam vo trang
     return [];
@@ -165,12 +216,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const add = useCallback(
-    (product: Product, quantity = 1) => {
+    (product: Product, quantity = 1, size = DEFAULT_SIZE) => {
+      // Gia hien thi theo co; backend van tu hoi gia khi dat hang
+      const option = product.sizes?.find((s) => s.code === size) ?? null;
+      const code = option?.code ?? DEFAULT_SIZE;
+      const key = productKey(product.id, code);
       updateLines((current) => {
-        const existing = current.find((line) => line.productId === product.id);
+        const existing = current.find((line) => line.key === key);
         if (existing) {
           return current.map((line) =>
-            line.productId === product.id
+            line.key === key
               ? { ...line, quantity: Math.min(MAX_QUANTITY, line.quantity + quantity) }
               : line,
           );
@@ -178,11 +233,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return [
           ...current,
           {
+            key,
             productId: product.id,
+            size: code,
+            sizeLabel: option && product.sized ? sizeLabelOf(option) : null,
+            customRequestId: null,
             name: product.name,
-            price: product.price,
+            price: option?.price ?? product.price,
             imageUrl: product.imageUrl,
             quantity: Math.min(MAX_QUANTITY, Math.max(1, quantity)),
+            leadDays: product.leadDays ?? 0,
           },
         ];
       });
@@ -190,12 +250,36 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [updateLines],
   );
 
+  const addCustomRequest = useCallback(
+    (request: CustomRequest) => {
+      const key = `r${request.id}`;
+      updateLines((current) => [
+        ...current.filter((line) => line.key !== key),
+        {
+          key,
+          productId: null,
+          size: null,
+          sizeLabel: request.occasion,
+          customRequestId: request.id,
+          name: `Hoa theo yêu cầu ${request.code}`,
+          price: request.quotedPrice ?? 0,
+          imageUrl: request.referenceImageUrl,
+          quantity: 1,
+          // Studio can it nhat mot ngay de nhap hoa cho bo lam rieng
+          leadDays: 1,
+        },
+      ]);
+    },
+    [updateLines],
+  );
+
   const setQuantity = useCallback(
-    (productId: number, quantity: number) => {
+    (key: string, quantity: number) => {
       updateLines((current) => {
-        if (quantity <= 0) return current.filter((line) => line.productId !== productId);
+        if (quantity <= 0) return current.filter((line) => line.key !== key);
         return current.map((line) =>
-          line.productId === productId
+          // Hoa theo yeu cau la mot bo lam rieng: so luong luon la 1
+          line.key === key && line.customRequestId == null
             ? { ...line, quantity: Math.min(MAX_QUANTITY, quantity) }
             : line,
         );
@@ -205,8 +289,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 
   const remove = useCallback(
-    (productId: number) => {
-      updateLines((current) => current.filter((line) => line.productId !== productId));
+    (key: string) => {
+      updateLines((current) => current.filter((line) => line.key !== key));
     },
     [updateLines],
   );
@@ -221,8 +305,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const total = Math.round((subtotal + deliveryFee) * 100) / 100;
 
   const value = useMemo<CartContextValue>(
-    () => ({ lines, count, subtotal, deliveryFee, total, bumpToken, add, setQuantity, remove, clear }),
-    [lines, count, subtotal, deliveryFee, total, bumpToken, add, setQuantity, remove, clear],
+    () => ({
+      lines,
+      count,
+      subtotal,
+      deliveryFee,
+      total,
+      bumpToken,
+      add,
+      addCustomRequest,
+      setQuantity,
+      remove,
+      clear,
+    }),
+    [lines, count, subtotal, deliveryFee, total, bumpToken, add, addCustomRequest, setQuantity, remove, clear],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

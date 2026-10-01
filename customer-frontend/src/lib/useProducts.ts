@@ -31,7 +31,7 @@ export function useProducts(query: ProductQuery) {
   const [reloadToken, setReloadToken] = useState(0);
   const controllerRef = useRef<AbortController | null>(null);
 
-  const { name, categoryId, page, size, sort } = query;
+  const { name, categoryId, occasion, color, minPrice, maxPrice, page, size, sort } = query;
 
   useEffect(() => {
     controllerRef.current?.abort();
@@ -41,7 +41,10 @@ export function useProducts(query: ProductQuery) {
     setState((previous) => ({ ...previous, loading: true, error: null }));
 
     api
-      .listProducts({ name, categoryId, page, size, sort }, controller.signal)
+      .listProducts(
+        { name, categoryId, occasion, color, minPrice, maxPrice, page, size, sort },
+        controller.signal,
+      )
       .then((data) => {
         if (controller.signal.aborted) return;
         setState({ data, loading: false, error: null });
@@ -57,7 +60,7 @@ export function useProducts(query: ProductQuery) {
       });
 
     return () => controller.abort();
-  }, [name, categoryId, page, size, sort, reloadToken]);
+  }, [name, categoryId, occasion, color, minPrice, maxPrice, page, size, sort, reloadToken]);
 
   const reload = useCallback(() => setReloadToken((token) => token + 1), []);
 

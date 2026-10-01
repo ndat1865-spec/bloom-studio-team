@@ -1,10 +1,27 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import basicSsl from "@vitejs/plugin-basic-ssl";
+import fs from "node:fs";
 import path from "node:path";
 
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
+// `npm run dev:https` (mode "https") chay https://localhost:5173.
+//
+// Can cho ZaloPay: trang ket qua cua ZaloPay chi dua khach ve redirecturl bat dau bang
+// https:// - gap http://localhost thi chan lai va dung yen o trang cua ho. VNPay va MoMo
+// khong kiem nhu vay nen `npm run dev` (http) van chay binh thuong voi hai cong do.
+// Chay https thi PAYMENT_RETURN_URL cua payment-service cung phai la https.
+//
+// Chung chi: co .cert/localhost.pem + .cert/localhost-key.pem (tao bang mkcert, xem README
+// cua thu muc nay) thi dung chung chi do - trinh duyet tin, hien o khoa binh thuong. Chua co
+// thi lui ve chung chi tu ky cua basicSsl - van chay nhung Chrome bao "Khong bao mat".
+// Thu muc .cert KHONG commit (moi may tu tao, khoa rieng khong duoc chia se).
+const certFile = path.resolve(__dirname, ".cert/localhost.pem");
+const keyFile = path.resolve(__dirname, ".cert/localhost-key.pem");
+const trustedCert = fs.existsSync(certFile) && fs.existsSync(keyFile);
+
+export default defineConfig(({ mode }) => ({
+  plugins: [react(), tailwindcss(), ...(mode === "https" && !trustedCert ? [basicSsl()] : [])],
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },
   },
@@ -29,5 +46,9 @@ export default defineConfig({
     // kiem tra backend da chay chua" - chi sai huong hoan toan, vi backend van chay tot.
     // Hong som va hong ro rang thi de tim hon nhieu.
     strictPort: true,
+    https:
+      mode === "https" && trustedCert
+        ? { cert: fs.readFileSync(certFile), key: fs.readFileSync(keyFile) }
+        : undefined,
   },
-});
+}));

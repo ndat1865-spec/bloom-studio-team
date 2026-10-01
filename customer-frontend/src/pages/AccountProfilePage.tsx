@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Loader2, Pencil } from "lucide-react";
+import { Check, Loader2, Pencil } from "lucide-react";
+import { GoogleButton } from "@/components/auth/GoogleButton";
 import { AccountLayout, AccountStats } from "@/components/account/AccountLayout";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
@@ -21,6 +22,10 @@ export default function AccountProfilePage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // Lien ket Google
+  const [linking, setLinking] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [googleAvailable, setGoogleAvailable] = useState(true);
 
   const [fullName, setFullName] = useState(user?.fullName ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
@@ -40,7 +45,7 @@ export default function AccountProfilePage() {
       .listMyOrders(0, 100, controller.signal)
       .then((page) => {
         const pending = page.content.filter(
-          (order) => order.status === "PENDING" || order.status === "CONFIRMED",
+          (order) => ["PENDING", "CONFIRMED", "PREPARING", "SHIPPING"].includes(order.status),
         ).length;
         setOrderStats({ total: page.totalElements, pending });
       })
@@ -98,6 +103,18 @@ export default function AccountProfilePage() {
 
   const name = user.displayName || user.fullName || user.username;
 
+  async function linkGoogle(credential: string) {
+    setLinking(true);
+    setLinkError(null);
+    try {
+      updateUser(await api.linkGoogle(credential));
+    } catch (error) {
+      setLinkError(error instanceof Error ? error.message : "Không liên kết được Google.");
+    } finally {
+      setLinking(false);
+    }
+  }
+
   return (
     <AccountLayout
       eyebrow="Tài khoản Bloom Studio"
@@ -131,7 +148,7 @@ export default function AccountProfilePage() {
           },
           {
             label: "Loại tài khoản",
-            value: user.role === "ADMIN" ? "Admin" : "Khách",
+            value: user.role === "ADMIN" ? "Admin" : user.role === "STAFF" ? "Nhân viên" : "Khách",
             hint: "Đăng nhập bằng " + user.username,
           },
         ]}
@@ -240,6 +257,47 @@ export default function AccountProfilePage() {
           </dl>
         )}
       </section>
+
+      {/*
+        Lien ket Google: chi tai khoan khach, va chi khi backend bat Google. Tai khoan tao
+        bang Google thi da lien ket san - khoi nay chi con bao trang thai.
+      */}
+      {user.role === "CUSTOMER" && (user.googleLinked || googleAvailable) ? (
+        <section aria-labelledby="google-heading" className="mt-6 bg-surface p-7">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <h2 id="google-heading" className="font-display text-xl font-semibold italic text-foreground">
+                Đăng nhập bằng Google
+              </h2>
+              <p className="mt-2 max-w-md text-sm font-light leading-relaxed text-muted-foreground">
+                {user.googleLinked
+                  ? "Tài khoản đã liên kết với Google. Lần sau bấm “Đăng nhập bằng Google”, không cần nhớ mật khẩu."
+                  : "Liên kết tài khoản Google để lần sau đăng nhập một chạm. Đơn hàng và địa chỉ vẫn giữ nguyên."}
+              </p>
+              {linkError ? (
+                <p role="alert" className="mt-3 text-xs text-danger">
+                  {linkError}
+                </p>
+              ) : null}
+            </div>
+            {user.googleLinked ? (
+              <span className="inline-flex shrink-0 items-center gap-2 text-sm text-success">
+                <Check className="size-4" aria-hidden="true" />
+                Đã liên kết
+              </span>
+            ) : (
+              <GoogleButton
+                className="w-full shrink-0 sm:w-72"
+                text="continue_with"
+                busy={linking}
+                onCredential={(credential) => void linkGoogle(credential)}
+                onError={setLinkError}
+                onAvailable={setGoogleAvailable}
+              />
+            )}
+          </div>
+        </section>
+      ) : null}
     </AccountLayout>
   );
 }

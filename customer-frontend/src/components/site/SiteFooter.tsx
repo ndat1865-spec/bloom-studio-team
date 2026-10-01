@@ -18,8 +18,8 @@ export function SiteFooter() {
             Bloom Studio
           </Link>
           <p className="mt-4 max-w-sm text-sm font-light text-muted-foreground">
-            Floral design studio, London EC1. Hand-tied arrangements, event florals and wedding
-            flowers — cut fresh the day you order.
+            Floral design studio, Tây Hồ, Hà Nội, Việt Nam. Hand-tied arrangements, event florals
+            and wedding flowers — cut fresh the day you order.
           </p>
         </div>
 
@@ -41,7 +41,7 @@ export function SiteFooter() {
       <div className="border-t border-border">
         <div className="shell py-6">
           <p className="label-micro text-muted-foreground">
-            © 2026 Bloom Studio · Floral Design · London EC1 · Same-Day Delivery Available
+            © 2026 Bloom Studio · Tiệm hoa Hà Nội · Giao trong ngày nội thành
           </p>
         </div>
       </div>

@@ -4,18 +4,18 @@ import { SectionHeading } from "@/components/site/SectionHeading";
 const STEPS = [
   {
     number: "01",
-    title: "Choose Your Stems",
-    body: "Nói cho chúng tôi dịp, ngân sách và tông màu bạn thích. Không cần chọn từng bông — mùa nào hoa nấy, chúng tôi chọn giúp.",
+    title: "Chọn bó & ngày giao",
+    body: "Chọn theo dịp, chọn cỡ bó, viết lời chúc lên thiệp. Không thấy mẫu ưng ý thì tả bó hoa bạn muốn — studio báo giá.",
   },
   {
     number: "02",
-    title: "We Build It By Hand",
-    body: "Mỗi bó được buộc tay trong studio EC1 vào đúng ngày bạn đặt. Không kho lạnh, không sản xuất hàng loạt.",
+    title: "Cắm tay, gửi ảnh thật",
+    body: "Thợ hoa cắm bó của bạn vào đúng ngày giao, chụp ảnh bó thật gửi vào trang đơn và email để bạn duyệt trước.",
   },
   {
     number: "03",
-    title: "Same-Day Delivery",
-    body: "Đặt trước 11h sáng, hoa tới trong ngày ở Central và Greater London. Hoặc chọn ngày giao khi thanh toán.",
+    title: "Giao tận tay trong ngày",
+    body: "Đặt trước 15:00 là giao ngay hôm nay trong nội thành Hà Nội, theo khung giờ sáng, chiều hoặc tối bạn chọn.",
   },
 ];
 
@@ -25,8 +25,8 @@ export function Process() {
       <div className="shell">
         <SectionHeading
           id="process-heading"
-          eyebrow="Đặt trước 11:00 · Giao trong ngày"
-          title="How It Works"
+          eyebrow="Đặt trước 15:00 · Giao trong ngày"
+          title="Đặt hoa thế nào"
         />
 
         <ol className="mt-16 grid grid-cols-1 gap-x-10 gap-y-14 md:grid-cols-3">
@@ -41,7 +41,7 @@ export function Process() {
               </span>
 
               <div className="relative">
-                <p className="label-micro text-accent">Step {step.number}</p>
+                <p className="label-micro text-accent">Bước {step.number}</p>
                 <h3 className="display-lg mt-4 text-foreground">{step.title}</h3>
                 <p className="prose-measure mt-4 text-sm font-light leading-relaxed text-muted-foreground md:text-[0.9375rem]">
                   {step.body}

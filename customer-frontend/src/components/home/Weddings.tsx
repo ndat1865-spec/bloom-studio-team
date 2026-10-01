@@ -5,17 +5,17 @@ import { SectionHeading } from "@/components/site/SectionHeading";
 
 const CHIPS = [
   {
-    label: "Ceremony",
+    label: "Lễ cưới",
     src: "/images/wedding-1.jpg",
     alt: "Bó hoa cưới tông hồng và trắng đặt trên vải lanh",
   },
   {
-    label: "Reception",
+    label: "Tiệc cưới",
     src: "/images/wedding-2.jpg",
     alt: "Bàn tiệc dài với bình hoa nhỏ và nến, ánh sáng trầm",
   },
   {
-    label: "Bridal Party",
+    label: "Bàn tiệc",
     src: "/images/wedding-3.jpg",
     alt: "Bàn ăn được bày với hoa tươi và ly thủy tinh",
   },
@@ -25,11 +25,11 @@ export function Weddings() {
   return (
     <RevealSection id="weddings" labelledBy="weddings-heading" className="bg-surface">
       <div className="shell">
-        <SectionHeading id="weddings-heading" eyebrow="Trọn gói từ £800" title="Wedding Florals" />
+        <SectionHeading id="weddings-heading" eyebrow="Trọn gói từ 8 triệu" title="Hoa cưới" />
 
         <p data-anim="fade-up" className="pull-quote prose-measure mt-10 text-foreground">
-          From bouquets to full venue styling — we work with you from the first consultation to the
-          last petal.
+          Từ bó hoa cầm tay đến trang trí cả tiệc cưới — studio cùng bạn từ buổi tư vấn đầu tiên tới
+          cánh hoa cuối cùng.
         </p>
 
         <ul className="mt-14 grid grid-cols-1 gap-0.5 sm:grid-cols-3">
@@ -52,13 +52,15 @@ export function Weddings() {
         </ul>
 
         {/*
-          CTA noi dung viec no lam: mo danh muc Wedding Flowers.
-          Khong dung "Start your wedding enquiry" vi form dat lich tu van khong nam trong
-          pham vi SOS01-SOS10 — xem README muc "Khong nam trong pham vi".
+          CTA noi dung viec no lam: mo danh muc Hoa cuoi, hoac gui yeu cau dat hoa
+          (ngan sach, tong mau, anh mau) de studio bao gia tron goi.
         */}
-        <div data-anim="fade-up" className="mt-12">
+        <div data-anim="fade-up" className="mt-12 flex flex-col gap-4 sm:flex-row sm:flex-wrap">
           <Button variant="primary" size="lg" asChild>
-            <Link to="/products?category=3">See wedding flowers →</Link>
+            <Link to="/products?category=3">Xem mẫu hoa cưới →</Link>
+          </Button>
+          <Button variant="ghost" size="lg" asChild>
+            <Link to="/dat-hoa-theo-yeu-cau">Nhờ studio báo giá</Link>
           </Button>
         </div>
       </div>

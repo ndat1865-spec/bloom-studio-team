@@ -5,21 +5,21 @@ import { SectionHeading } from "@/components/site/SectionHeading";
 const QUOTES = [
   {
     quote:
-      "I ordered a bouquet at 9am and it arrived by 2pm. The arrangement was nothing like anything you’d find in a supermarket — genuinely beautiful.",
-    name: "Alice K.",
-    occasion: "Islington · Birthday",
+      "Đặt hoa lúc 9 giờ sáng, 2 giờ chiều đã nhận. Bó hoa khác hẳn hoa bán sẵn ngoài tiệm — đẹp thật sự.",
+    name: "Minh Anh",
+    occasion: "Ba Đình · Sinh nhật",
   },
   {
     quote:
-      "They did the flowers for our reception in Hackney. Three consultations, no upselling, and the tables looked better than the mood board.",
-    name: "Daniel & Marta",
-    occasion: "Hackney · Wedding",
+      "Studio làm hoa cho tiệc cưới của chúng tôi ở Tây Hồ. Ba buổi tư vấn, không ép mua thêm, bàn tiệc còn đẹp hơn cả bản phác thảo.",
+    name: "Quang & Thảo",
+    occasion: "Tây Hồ · Tiệc cưới",
   },
   {
     quote:
-      "We have a standing Monday delivery for reception. Different every week, always in season, never once late.",
-    name: "Priya S.",
-    occasion: "Clerkenwell · Office",
+      "Văn phòng đặt hoa quầy lễ tân mỗi sáng thứ Hai. Tuần nào cũng khác, luôn đúng mùa, chưa trễ lần nào.",
+    name: "Chị Lan",
+    occasion: "Cầu Giấy · Văn phòng",
   },
 ];
 

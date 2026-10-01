@@ -1,14 +1,14 @@
 import { RevealSection } from "@/components/site/RevealSection";
 import { SectionHeading } from "@/components/site/SectionHeading";
 
-const CHIPS = ["London", "Est. 2018", "Sustainable Sourcing"];
+const CHIPS = ["Hà Nội · Việt Nam", "Từ 2018", "Hoa nhập mỗi sáng"];
 
 export function About() {
   return (
     <RevealSection id="about" labelledBy="about-heading">
       <div className="shell grid grid-cols-1 items-center gap-12 lg:grid-cols-[1fr_0.9fr] lg:gap-20">
         <div>
-          <SectionHeading id="about-heading" eyebrow="EC1 · Từ năm 2018" title="The Studio" />
+          <SectionHeading id="about-heading" eyebrow="Tây Hồ, Hà Nội · Từ năm 2018" title="The Studio" />
 
           <blockquote data-anim="fade-up" className="pull-quote mt-10 text-foreground">
             <span aria-hidden="true" className="text-accent">
@@ -23,8 +23,8 @@ export function About() {
 
           <div data-anim="fade-up" className="prose-measure mt-9 space-y-5 text-[0.9375rem] font-light leading-relaxed text-muted-foreground">
             <p>
-              Bloom Studio bắt đầu năm 2018 từ một bàn gỗ trong một xưởng nhỏ ở EC1. Chúng tôi nhập
-              hoa từ các trại trồng ở Kent và Lincolnshire, cộng thêm hoa chợ Hà Lan vào mùa thấp
+              Bloom Studio bắt đầu năm 2018 từ một bàn gỗ trong một xưởng nhỏ ở Tây Hồ, Hà Nội. Chúng
+              tôi lấy hoa từ các vườn ở Đà Lạt và Mê Linh, cộng thêm hoa chợ Quảng An vào mùa thấp
               điểm, và cắt theo đơn thay vì giữ hàng tồn.
             </p>
             <p>

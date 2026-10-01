@@ -3,6 +3,7 @@ import { Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { RequireAuth } from "@/components/RequireAuth";
+import { ChatWidget } from "@/components/chat/ChatWidget";
 import { Spinner } from "@/components/ui/feedback";
 import HomePage from "@/pages/HomePage";
 
@@ -13,9 +14,13 @@ const ProductDetailPage = lazy(() => import("@/pages/ProductDetailPage"));
 const CartPage = lazy(() => import("@/pages/CartPage"));
 const CheckoutPage = lazy(() => import("@/pages/CheckoutPage"));
 const OrderDetailPage = lazy(() => import("@/pages/OrderDetailPage"));
+const PaymentResultPage = lazy(() => import("@/pages/PaymentResultPage"));
 const AccountProfilePage = lazy(() => import("@/pages/AccountProfilePage"));
 const AccountAddressPage = lazy(() => import("@/pages/AccountAddressPage"));
 const AccountOrdersPage = lazy(() => import("@/pages/AccountOrdersPage"));
+const AccountRequestsPage = lazy(() => import("@/pages/AccountRequestsPage"));
+const AccountVouchersPage = lazy(() => import("@/pages/AccountVouchersPage"));
+const CustomOrderPage = lazy(() => import("@/pages/CustomOrderPage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 
 /** Doi route thi cuon len dau trang (tru khi duong dan co hash). */
@@ -78,6 +83,9 @@ function Layout() {
       </main>
 
       <SiteFooter />
+
+      {/* Chat voi studio: tro ly AI tra loi truoc, can thi chuyen nhan vien */}
+      <ChatWidget />
     </>
   );
 }
@@ -107,6 +115,17 @@ export default function App() {
           <Route path="cart" element={<CartPage />} />
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="orders/:id" element={<OrderDetailPage />} />
+          {/* Dat hoa theo yeu cau: khach mo ta, studio bao gia */}
+          <Route
+            path="dat-hoa-theo-yeu-cau"
+            element={
+              <RequireAuth>
+                <CustomOrderPage />
+              </RequireAuth>
+            }
+          />
+          {/* VNPay / MoMo / ZaloPay dua khach ve day (payment.return-url cua payment-service) */}
+          <Route path="payment/result" element={<PaymentResultPage />} />
 
           {/* Khu vuc tai khoan — ca ADMIN lan CUSTOMER deu vao duoc */}
           <Route
@@ -130,6 +149,24 @@ export default function App() {
             element={
               <RequireAuth>
                 <AccountOrdersPage />
+              </RequireAuth>
+            }
+          />
+
+          <Route
+            path="tai-khoan/yeu-cau-dat-hoa"
+            element={
+              <RequireAuth>
+                <AccountRequestsPage />
+              </RequireAuth>
+            }
+          />
+
+          <Route
+            path="tai-khoan/ma-giam-gia"
+            element={
+              <RequireAuth>
+                <AccountVouchersPage />
               </RequireAuth>
             }
           />

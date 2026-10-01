@@ -49,7 +49,8 @@ export function AccountMenu({ onSignOut }: { onSignOut: () => void }) {
 
   if (!user) return null;
 
-  const isAdmin = user.role === "ADMIN";
+  // ADMIN va nhan vien deu co loi sang app quan tri
+  const isAdmin = user.role === "ADMIN" || user.role === "STAFF";
   const name = user.displayName || user.fullName || user.username;
 
   const itemClasses =
@@ -71,6 +72,7 @@ export function AccountMenu({ onSignOut }: { onSignOut: () => void }) {
 
         <InitialsAvatar
           name={name}
+          src={user.avatarUrl}
           size="md"
           // Menu dang mo thi giu ve "dang bat", khong phu thuoc chuot con o do hay khong
           className={cn("relative", AVATAR_HOVER, open && AVATAR_ACTIVE)}
@@ -94,7 +96,7 @@ export function AccountMenu({ onSignOut }: { onSignOut: () => void }) {
         >
           {/* Danh tinh: chi de doc, khong phai muc bam duoc */}
           <div className="flex items-center gap-3 border-b border-border px-5 pb-4 pt-3">
-            <InitialsAvatar name={name} size="md" />
+            <InitialsAvatar name={name} src={user.avatarUrl} size="md" />
             <div className="min-w-0">
               <p className="truncate text-sm text-foreground">{name}</p>
               <p className="label-micro mt-1 text-accent">

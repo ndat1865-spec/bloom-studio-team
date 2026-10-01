@@ -27,7 +27,7 @@ export function CartIndicator({ className }: { className?: string }) {
     }
     if (reduceMotion) return;
     setBumping(true);
-    const timer = window.setTimeout(() => setBumping(false), 320);
+    const timer = window.setTimeout(() => setBumping(false), 560);
     return () => window.clearTimeout(timer);
   }, [bumpToken, reduceMotion]);
 
@@ -37,17 +37,38 @@ export function CartIndicator({ className }: { className?: string }) {
     <Link
       to="/cart"
       aria-label={label}
+      // Diem den cua hieu ung "bay vao gio" (lib/flyToCart)
+      data-cart-target=""
       className={cn(
         "relative inline-flex size-11 items-center justify-center text-foreground transition-colors",
         "hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
         className,
       )}
     >
+      {/* Vong sang loang ra khi bo hoa vua roi vao gio */}
+      <AnimatePresence>
+        {bumping ? (
+          <motion.span
+            key={`ring-${bumpToken}`}
+            aria-hidden="true"
+            initial={{ scale: 0.5, opacity: 0.7 }}
+            animate={{ scale: 1.6, opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.55, ease: [0.2, 0, 0, 1] }}
+            className="pointer-events-none absolute inset-1 rounded-full border-2 border-accent"
+          />
+        ) : null}
+      </AnimatePresence>
+
       <motion.span
         aria-hidden="true"
-        animate={bumping ? { rotate: [0, -9, 7, 0] } : { rotate: 0 }}
-        transition={{ duration: 0.32, ease: [0.2, 0, 0, 1] }}
-        className="inline-flex"
+        animate={
+          bumping
+            ? { scale: [1, 1.32, 0.92, 1.06, 1], rotate: [0, -10, 8, -3, 0], y: [0, 2, -2, 0, 0] }
+            : { scale: 1, rotate: 0, y: 0 }
+        }
+        transition={{ duration: 0.55, ease: [0.2, 0, 0, 1] }}
+        className={cn("inline-flex transition-colors", bumping && "text-accent")}
       >
         <ShoppingBag className="size-5" />
       </motion.span>
@@ -58,9 +79,9 @@ export function CartIndicator({ className }: { className?: string }) {
             key="badge"
             aria-hidden="true"
             initial={reduceMotion ? false : { scale: 0.4, opacity: 0 }}
-            animate={{ scale: bumping && !reduceMotion ? [1, 1.35, 1] : 1, opacity: 1 }}
+            animate={{ scale: bumping && !reduceMotion ? [1, 1.55, 0.9, 1] : 1, opacity: 1 }}
             exit={reduceMotion ? undefined : { scale: 0.4, opacity: 0 }}
-            transition={{ duration: 0.32, ease: [0.2, 0, 0, 1] }}
+            transition={{ duration: 0.45, ease: [0.2, 0, 0, 1] }}
             className={cn(
               "num absolute -right-1 -top-0.5 inline-flex min-w-[1.25rem] items-center justify-center",
               "rounded-chip bg-accent px-1.5 py-0.5 text-[10px] font-medium leading-none text-background",
