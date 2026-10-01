@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Loader2, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/site/AdminShell";
 import { Field, Input } from "@/components/ui/field";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { EmptyState, ErrorState, Notice, TableRowSkeleton } from "@/components/ui/feedback";
@@ -111,43 +112,41 @@ export default function AdminCategoriesPage() {
 
   return (
     <div className="shell page-pad">
-      <header>
-        <p className="label-micro text-accent">Admin · SOS05 &amp; SOS06</p>
-        <h1 className="display-section mt-5 text-foreground">Danh mục</h1>
-        <span aria-hidden="true" className="mt-6 block h-px w-28 bg-accent" />
-        <p className="prose-measure mt-6 text-[0.9375rem] font-light leading-relaxed text-muted-foreground">
-          Danh mục là phía &ldquo;một&rdquo; trong quan hệ 1–N với sản phẩm. Không dùng cascade: muốn
-          xoá một danh mục thì phải chuyển hoặc xoá hết sản phẩm bên trong trước.
-        </p>
-      </header>
+      <PageHeader
+        title="Danh mục"
+        description="Nhóm sản phẩm theo loại. Không xoá được danh mục còn sản phẩm — hãy chuyển hoặc xoá sản phẩm bên trong trước."
+      />
 
       {notice ? (
-        <Notice tone={notice.tone} className="mt-8">
+        <Notice tone={notice.tone} className="mt-6">
           {notice.text}
         </Notice>
       ) : null}
 
-      <div className="mt-10 grid grid-cols-1 gap-12 lg:grid-cols-[1fr_22rem] lg:gap-10">
-        <section aria-labelledby="category-list-heading">
-          <h2 id="category-list-heading" className="display-lg text-foreground">
-            Tất cả danh mục
-          </h2>
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <section aria-labelledby="category-list-heading" className="card min-w-0 overflow-hidden">
+          <div className="flex items-baseline gap-2 px-5 py-4">
+            <h2 id="category-list-heading" className="text-base text-foreground">
+              Tất cả danh mục
+            </h2>
+            {categories ? (
+              <span className="num text-xs text-muted-foreground">{categories.length} danh mục</span>
+            ) : null}
+          </div>
 
-          <div className="mt-6 overflow-x-auto border border-border">
-            <table className="w-full min-w-[32rem] border-collapse text-left">
+          <div className="overflow-x-auto">
+            <table className="data-table min-w-[32rem]">
               <caption className="sr-only">Danh sách danh mục và số sản phẩm trong mỗi danh mục</caption>
               <thead>
-                <tr className="border-b border-border bg-surface">
-                  <th scope="col" className="label-micro px-4 py-4 text-muted-foreground">
+                <tr>
+                  <th scope="col" className="w-20">
                     Mã
                   </th>
-                  <th scope="col" className="label-micro px-4 py-4 text-muted-foreground">
-                    Tên danh mục
-                  </th>
-                  <th scope="col" className="label-micro px-4 py-4 text-right text-muted-foreground">
+                  <th scope="col">Tên danh mục</th>
+                  <th scope="col" className="text-right">
                     Sản phẩm
                   </th>
-                  <th scope="col" className="label-micro px-4 py-4 text-right text-muted-foreground">
+                  <th scope="col" className="text-right">
                     Thao tác
                   </th>
                 </tr>
@@ -160,18 +159,20 @@ export default function AdminCategoriesPage() {
                   : categories?.map((category) => (
                       <tr
                         key={category.id}
-                        className="border-b border-border transition-colors last:border-b-0 hover:bg-surface-raised"
+                        className={editingId === category.id ? "bg-accent-soft/60" : undefined}
                       >
-                        <td className="num px-4 py-4 text-sm text-muted-foreground">#{category.id}</td>
-                        <td className="px-4 py-4 text-sm text-foreground">{category.name}</td>
-                        <td className="num px-4 py-4 text-right text-sm text-foreground">
-                          {category.productCount}
+                        <td className="num text-subtle-foreground">#{category.id}</td>
+                        <td className="font-medium text-foreground">{category.name}</td>
+                        <td className="text-right">
+                          <span className="num inline-flex min-w-8 justify-center rounded-full bg-surface-raised px-2 py-0.5 text-xs text-muted-foreground">
+                            {category.productCount}
+                          </span>
                         </td>
-                        <td className="px-4 py-4">
-                          <div className="flex justify-end gap-2">
+                        <td>
+                          <div className="flex justify-end gap-1">
                             <Button
                               variant="ghost"
-                              size="sm"
+                              size="icon"
                               onClick={() => {
                                 setEditingId(category.id);
                                 setName(category.name);
@@ -180,15 +181,16 @@ export default function AdminCategoriesPage() {
                               }}
                             >
                               <Pencil aria-hidden="true" />
-                              Sửa
+                              <span className="sr-only">Sửa {category.name}</span>
                             </Button>
                             <Button
-                              variant="danger"
-                              size="sm"
+                              variant="ghost"
+                              size="icon"
+                              className="hover:bg-danger/10 hover:text-danger"
                               onClick={() => setConfirmTarget(category)}
                             >
                               <Trash2 aria-hidden="true" />
-                              Xoá
+                              <span className="sr-only">Xoá {category.name}</span>
                             </Button>
                           </div>
                         </td>
@@ -199,32 +201,38 @@ export default function AdminCategoriesPage() {
           </div>
 
           {loadError ? (
-            <ErrorState
-              message={loadError}
-              action={
-                <Button variant="outline" size="md" onClick={() => void load()}>
-                  Thử lại
-                </Button>
-              }
-            />
+            <div className="border-t border-border p-5">
+              <ErrorState
+                message={loadError}
+                action={
+                  <Button variant="outline" size="md" onClick={() => void load()}>
+                    Thử lại
+                  </Button>
+                }
+              />
+            </div>
           ) : null}
 
           {!loading && categories?.length === 0 ? (
-            <EmptyState
-              title="Chưa có danh mục nào"
-              description="Tạo danh mục đầu tiên ở biểu mẫu bên cạnh, ví dụ Bespoke Arrangements."
-            />
+            <div className="border-t border-border">
+              <EmptyState
+                title="Chưa có danh mục nào"
+                description="Tạo danh mục đầu tiên ở biểu mẫu bên cạnh, ví dụ Bespoke Arrangements."
+              />
+            </div>
           ) : null}
         </section>
 
-        <section aria-labelledby="category-form-heading" className="lg:sticky lg:top-28 lg:self-start">
-          <form onSubmit={handleSubmit} noValidate className="border border-border bg-surface p-6">
-            <h2 id="category-form-heading" className="display-lg text-foreground">
+        <section aria-labelledby="category-form-heading" className="lg:sticky lg:top-20 lg:self-start">
+          <form onSubmit={handleSubmit} noValidate className="card p-5">
+            <h2 id="category-form-heading" className="text-base text-foreground">
               {editingId ? `Sửa danh mục #${editingId}` : "Thêm danh mục"}
             </h2>
-            <span aria-hidden="true" className="mt-4 block h-px w-16 bg-accent" />
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {editingId ? "Đổi tên rồi bấm Lưu thay đổi." : "Tên hiển thị trên cửa hàng."}
+            </p>
 
-            <div className="mt-7">
+            <div className="mt-5">
               <Field id="category-name" label="Tên danh mục" error={nameError} required>
                 {(props) => (
                   <Input
@@ -238,7 +246,13 @@ export default function AdminCategoriesPage() {
               </Field>
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
+              {editingId ? (
+                <Button type="button" variant="outline" size="md" onClick={resetForm} disabled={saving}>
+                  <RotateCcw aria-hidden="true" />
+                  Huỷ sửa
+                </Button>
+              ) : null}
               <Button type="submit" variant="primary" size="md" disabled={saving}>
                 {saving ? (
                   <>
@@ -253,10 +267,6 @@ export default function AdminCategoriesPage() {
                     Thêm
                   </>
                 )}
-              </Button>
-              <Button type="button" variant="ghost" size="md" onClick={resetForm} disabled={saving}>
-                <RotateCcw aria-hidden="true" />
-                Làm mới
               </Button>
             </div>
           </form>
@@ -276,7 +286,7 @@ export default function AdminCategoriesPage() {
           }
           footer={
             <>
-              <Button variant="ghost" size="md" onClick={() => setConfirmTarget(null)} disabled={deleting}>
+              <Button variant="outline" size="md" onClick={() => setConfirmTarget(null)} disabled={deleting}>
                 Huỷ
               </Button>
               <Button variant="danger" size="md" onClick={handleDelete} disabled={deleting}>

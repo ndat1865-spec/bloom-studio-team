@@ -26,20 +26,22 @@ export function Pagination({
   page,
   totalPages,
   onChange,
+  label = "Phân trang",
 }: {
   page: number;
   totalPages: number;
   onChange: (page: number) => void;
+  label?: string;
 }) {
   if (totalPages <= 1) return null;
 
   const items = pageWindow(page, totalPages);
 
   const arrowClasses =
-    "inline-flex size-11 items-center justify-center border border-border text-foreground transition-colors hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-40";
+    "inline-flex size-8 items-center justify-center rounded-[var(--radius-sm)] border border-border text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-40";
 
   return (
-    <nav aria-label="Phân trang sản phẩm" className="mt-14 flex items-center justify-center gap-2">
+    <nav aria-label={label} className="flex items-center justify-end gap-1">
       <button
         type="button"
         className={arrowClasses}
@@ -62,11 +64,11 @@ export function Pagination({
             aria-current={item === page ? "page" : undefined}
             onClick={() => onChange(item)}
             className={cn(
-              "num inline-flex size-11 items-center justify-center border text-sm transition-colors",
+              "num inline-flex h-8 min-w-8 items-center justify-center rounded-[var(--radius-sm)] px-2 text-[0.8125rem] transition-colors",
               "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
               item === page
-                ? "border-accent bg-accent text-background"
-                : "border-border text-foreground hover:border-accent hover:text-accent",
+                ? "bg-accent-soft font-medium text-accent"
+                : "text-muted-foreground hover:bg-surface-hover hover:text-foreground",
             )}
           >
             {item + 1}

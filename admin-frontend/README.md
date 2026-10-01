@@ -3,7 +3,8 @@
 Phụ trách: **Nguyễn Ngọc Minh Thu** · Cổng **5174** · React 19 + Vite 6 + Tailwind 4
 
 Trang dành cho quản trị viên: tổng quan doanh thu, quản lý hoa (thêm/sửa/xoá, tải ảnh, tồn
-kho), danh mục, đơn hàng (đổi trạng thái, xem chi tiết), khoá API đối tác. Chỉ gọi Gateway
+kho, dịp, màu), danh mục, đơn hàng (đổi trạng thái, xem chi tiết quà tặng), mã giảm giá,
+duyệt đánh giá, khoá API đối tác. Chỉ gọi Gateway
 `http://localhost:8080`.
 
 ## Chạy
@@ -27,10 +28,12 @@ vite cũ, **đừng** đổi cổng: Gateway chỉ cho phép CORS từ 5173 và 
 | Đường dẫn | File | Gọi tới |
 |---|---|---|
 | `/admin` | `AdminOverviewPage` | `/orders/overview` + `/products` + `/categories` + `/users` |
-| `/admin/products` | `AdminProductsPage` | `/products`, `/products/{id}/upload-image` |
+| `/admin/products` | `AdminProductsPage` | `/products`, `/products/attributes`, `/products/{id}/upload-image` |
 | `/admin/categories` | `AdminCategoriesPage` | `/categories` |
 | `/admin/orders` | `AdminOrdersPage` | `/orders`, `/orders/{id}/status` |
 | `/orders/:id` | `OrderDetailPage` | `/orders/{id}` |
+| `/admin/vouchers` | `AdminVouchersPage` | `/vouchers` |
+| `/admin/reviews` | `AdminReviewsPage` | `/reviews`, `/reviews/{id}/visibility` |
 | `/admin/api-keys` | `AdminApiKeysPage` | `/api-keys` |
 
 Mọi trang nằm trong `AdminLayout` (`src/App.tsx`), đã bọc `RequireRole role="ADMIN"`. Đó chỉ

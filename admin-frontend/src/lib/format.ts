@@ -1,32 +1,19 @@
 import { SERVER_ORIGIN } from "./api";
 
-/** Tien chan: "£68". */
-const gbpWhole = new Intl.NumberFormat("en-GB", {
+/** Tien VND: "680.000 ₫" — dong khong co phan le. */
+const vnd = new Intl.NumberFormat("vi-VN", {
   style: "currency",
-  currency: "GBP",
-  minimumFractionDigits: 0,
+  currency: "VND",
   maximumFractionDigits: 0,
 });
 
-/** Tien le: "£74.50" — LUON du 2 chu so thap phan. */
-const gbpFraction = new Intl.NumberFormat("en-GB", {
-  style: "currency",
-  currency: "GBP",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
 /**
- * Gia hien thi theo GBP — dong nhat voi noi dung London cua landing page.
- *
- * Tien chan hien khong co phan thap phan ("£68"), tien le hien DU 2 chu so
- * ("£74.50"). Khong bao gio de mot chu so thap phan kieu "£74.5" — do la loi
- * trinh bay tien te ai cung nhan ra.
+ * Gia hien thi theo VND — cung don vi voi VNPay / MoMo / ZaloPay va phi GHN.
+ * Lam tron ve dong: cac cong thanh toan chi nhan so nguyen.
  */
 export function formatPrice(value: number | null | undefined): string {
   if (value == null || Number.isNaN(value)) return "—";
-  const rounded = Math.round(value * 100) / 100;
-  return Number.isInteger(rounded) ? gbpWhole.format(rounded) : gbpFraction.format(rounded);
+  return vnd.format(Math.round(value));
 }
 
 export const FALLBACK_IMAGE = "/images/placeholder.svg";

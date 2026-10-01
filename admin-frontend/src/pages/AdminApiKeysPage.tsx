@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Ban, Check, Copy, KeyRound, Loader2, Plus, RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/site/AdminShell";
 import { Field, Input, NativeSelect } from "@/components/ui/field";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { EmptyState, ErrorState, Notice, TableRowSkeleton } from "@/components/ui/feedback";
@@ -25,6 +26,9 @@ const HAN_DUNG = [
   { value: "", label: "Không hết hạn" },
 ];
 
+/** Han muc request/phut - Gateway tra 429 khi doi tac vuot. */
+const GIOI_HAN = [10, 60, 300, 1000];
+
 function formatDate(value: string | null) {
   if (!value) return "—";
   return new Date(value).toLocaleString("vi-VN", {
@@ -37,9 +41,11 @@ function formatDate(value: string | null) {
 }
 
 function trangThai(key: ApiKey) {
-  if (key.status === "REVOKED") return { text: "Đã thu hồi", tone: "text-muted-foreground" };
-  if (!key.usable) return { text: "Hết hạn", tone: "text-muted-foreground" };
-  return { text: "Đang dùng", tone: "text-foreground" };
+  if (key.status === "REVOKED")
+    return { text: "Đã thu hồi", tone: "bg-danger/12 text-danger", dot: "bg-danger" };
+  if (!key.usable)
+    return { text: "Hết hạn", tone: "bg-warning/12 text-warning", dot: "bg-warning" };
+  return { text: "Đang dùng", tone: "bg-success/12 text-success", dot: "bg-success" };
 }
 
 export default function AdminApiKeysPage() {
@@ -50,6 +56,7 @@ export default function AdminApiKeysPage() {
   const [ownerName, setOwnerName] = useState("");
   const [scope, setScope] = useState(SCOPES[0].value);
   const [daysValid, setDaysValid] = useState("30");
+  const [rateLimit, setRateLimit] = useState("60");
   const [ownerError, setOwnerError] = useState<string | undefined>();
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<{ tone: "success" | "error"; text: string } | null>(null);
@@ -83,6 +90,7 @@ export default function AdminApiKeysPage() {
     setOwnerName("");
     setScope(SCOPES[0].value);
     setDaysValid("30");
+    setRateLimit("60");
     setOwnerError(undefined);
   }
 
@@ -107,6 +115,7 @@ export default function AdminApiKeysPage() {
         ownerName: trimmed,
         scopes: [scope],
         daysValid: daysValid === "" ? null : Number(daysValid),
+        rateLimitPerMinute: Number(rateLimit),
       });
       setJustCreated(created);
       setCopied(false);
@@ -132,6 +141,19 @@ export default function AdminApiKeysPage() {
     } catch {
       // Trinh duyet chan clipboard (thuong la khi khong chay tren HTTPS): de ADMIN tu boi den chep.
       setNotice({ tone: "error", text: "Trình duyệt chặn sao chép tự động — hãy bôi đen và chép tay." });
+    }
+  }
+
+  async function handleRateLimit(key: ApiKey, value: number) {
+    try {
+      await api.updateApiKeyRateLimit(key.id, value);
+      setNotice({
+        tone: "success",
+        text: `Khoá của "${key.ownerName}": ${value} request/phút. Có hiệu lực trong vòng 1 phút.`,
+      });
+      await load();
+    } catch (error) {
+      setNotice({ tone: "error", text: error instanceof Error ? error.message : "Không đổi được giới hạn." });
     }
   }
 
@@ -175,135 +197,179 @@ export default function AdminApiKeysPage() {
 
   return (
     <div className="shell page-pad">
-      <header>
-        <p className="label-micro text-accent">Admin · Đối tác</p>
-        <h1 className="display-section mt-5 text-foreground">Khoá API</h1>
-        <span aria-hidden="true" className="mt-6 block h-px w-28 bg-accent" />
-        <p className="prose-measure mt-6 text-[0.9375rem] font-light leading-relaxed text-muted-foreground">
-          Khoá dành cho đối tác ngoài gọi <code>/api/public/**</code> bằng header{" "}
-          <code>X-API-KEY</code>, không phải cho người dùng của cửa hàng. Hệ thống chỉ lưu bản
-          băm của khoá — <strong>khoá gốc chỉ hiện đúng một lần</strong> ngay sau khi cấp.
-        </p>
-        <p className="prose-measure mt-3 text-[0.9375rem] font-light leading-relaxed text-muted-foreground">
-          Thu hồi có thể chậm tới một phút do Gateway nhớ kết quả kiểm tra.
-        </p>
-      </header>
+      <PageHeader
+        title="Khoá API đối tác"
+        description={
+          <>
+            Khoá cho đối tác ngoài gọi <code className="text-foreground">/api/public/**</code> bằng
+            header <code className="text-foreground">X-API-KEY</code>. Hệ thống chỉ lưu bản băm —
+            khoá gốc chỉ hiện đúng một lần ngay sau khi cấp.
+          </>
+        }
+      />
 
       {justCreated ? (
         <section
           aria-labelledby="new-key-heading"
-          className="mt-8 border border-accent bg-surface p-6"
+          className="mt-6 rounded-[var(--radius-md)] border border-accent/50 bg-accent-soft/50 p-5"
         >
-          <h2 id="new-key-heading" className="display-lg flex items-center gap-2 text-foreground">
-            <KeyRound aria-hidden="true" className="size-5 text-accent" />
+          <h2 id="new-key-heading" className="flex items-center gap-2 text-base text-foreground">
+            <KeyRound aria-hidden="true" className="size-4 text-accent" />
             Khoá của &ldquo;{justCreated.key.ownerName}&rdquo;
           </h2>
-          <p className="mt-3 text-sm text-accent">{justCreated.warning}</p>
+          <p className="mt-1 text-sm text-accent">{justCreated.warning}</p>
 
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            <code className="num flex-1 break-all border border-border bg-background px-4 py-3 text-sm text-foreground">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <code className="num flex-1 break-all rounded-[var(--radius-sm)] border border-border bg-background px-3 py-2 text-foreground">
               {justCreated.keyValue}
             </code>
             <Button
               type="button"
-              variant="outline"
+              variant="primary"
               size="md"
               onClick={() => void handleCopy(justCreated.keyValue)}
             >
               {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
-              {copied ? "Đã chép" : "Chép"}
+              {copied ? "Đã chép" : "Chép khoá"}
             </Button>
-          </div>
-
-          <div className="mt-5 flex flex-wrap gap-3">
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="md"
               onClick={() => {
                 setJustCreated(null);
                 setCopied(false);
               }}
             >
-              Tôi đã lưu khoá, ẩn đi
+              Tôi đã lưu, ẩn đi
             </Button>
           </div>
         </section>
       ) : null}
 
       {notice ? (
-        <Notice tone={notice.tone} className="mt-8">
+        <Notice tone={notice.tone} className="mt-6">
           {notice.text}
         </Notice>
       ) : null}
 
-      <div className="mt-10 grid grid-cols-1 gap-12 lg:grid-cols-[1fr_22rem] lg:gap-10">
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
         {/* min-w-0: o luoi, con mac dinh la min-width:auto nen bang rong hon se day
             ca trang tran ngang thay vi tu cuon trong khung overflow-x-auto. */}
-        <section aria-labelledby="key-list-heading" className="min-w-0">
-          <h2 id="key-list-heading" className="display-lg text-foreground">
-            Khoá đã cấp
-          </h2>
+        <section aria-labelledby="key-list-heading" className="card min-w-0 overflow-hidden">
+          <div className="flex flex-wrap items-baseline justify-between gap-2 px-5 py-4">
+            <div className="flex items-baseline gap-2">
+              <h2 id="key-list-heading" className="text-base text-foreground">
+                Khoá đã cấp
+              </h2>
+              {keys ? (
+                <span className="num text-xs text-muted-foreground">{keys.length} khoá</span>
+              ) : null}
+            </div>
+            <span className="text-xs text-subtle-foreground">
+              Thu hồi có thể chậm tới 1 phút do Gateway nhớ kết quả kiểm tra
+            </span>
+          </div>
 
-          <div className="mt-6 overflow-x-auto border border-border">
-            <table className="w-full min-w-[44rem] border-collapse text-left">
+          <div className="overflow-x-auto">
+            <table className="data-table min-w-[52rem]">
               <caption className="sr-only">
                 Danh sách khoá API với chủ sở hữu, quyền, trạng thái và lần dùng gần nhất
               </caption>
               <thead>
-                <tr className="border-b border-border bg-surface">
-                  <th scope="col" className="label-micro px-4 py-4 text-muted-foreground">Đối tác</th>
-                  <th scope="col" className="label-micro px-4 py-4 text-muted-foreground">Khoá</th>
-                  <th scope="col" className="label-micro px-4 py-4 text-muted-foreground">Quyền</th>
-                  <th scope="col" className="label-micro px-4 py-4 text-muted-foreground">Trạng thái</th>
-                  <th scope="col" className="label-micro px-4 py-4 text-muted-foreground">Dùng gần nhất</th>
-                  <th scope="col" className="label-micro px-4 py-4 text-right text-muted-foreground">Thao tác</th>
+                <tr>
+                  <th scope="col">Đối tác</th>
+                  <th scope="col">Khoá</th>
+                  <th scope="col">Quyền</th>
+                  <th scope="col">Trạng thái</th>
+                  <th scope="col">Giới hạn</th>
+                  <th scope="col">Dùng gần nhất</th>
+                  <th scope="col" className="text-right">
+                    Thao tác
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {loading
                   ? Array.from({ length: 2 }).map((_, index) => (
-                      <TableRowSkeleton key={index} columns={6} />
+                      <TableRowSkeleton key={index} columns={7} />
                     ))
                   : keys?.map((key) => {
                       const status = trangThai(key);
                       return (
-                        <tr
-                          key={key.id}
-                          className="border-b border-border transition-colors last:border-b-0 hover:bg-surface-raised"
-                        >
-                          <td className="px-4 py-4 text-sm text-foreground">
-                            {key.ownerName}
-                            <span className="num block text-xs text-muted-foreground">#{key.id}</span>
+                        <tr key={key.id}>
+                          <td className="text-foreground">
+                            <span className="font-medium">{key.ownerName}</span>
+                            <span className="num block text-xs text-subtle-foreground">#{key.id}</span>
                           </td>
-                          <td className="num px-4 py-4 text-sm text-muted-foreground">
-                            {key.keyPrefix}…
+                          <td>
+                            <code className="rounded bg-surface-raised px-1.5 py-0.5 text-muted-foreground">
+                              {key.keyPrefix}…
+                            </code>
                           </td>
-                          <td className="px-4 py-4 text-sm text-muted-foreground">
-                            {key.scopes.join(", ")}
+                          <td>
+                            <div className="flex flex-wrap gap-1">
+                              {key.scopes.map((item) => (
+                                <span
+                                  key={item}
+                                  className="rounded-full bg-info/12 px-2 py-0.5 text-xs text-info"
+                                >
+                                  {item}
+                                </span>
+                              ))}
+                            </div>
                           </td>
-                          <td className={`px-4 py-4 text-sm ${status.tone}`}>
-                            {status.text}
+                          <td>
+                            <span
+                              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${status.tone}`}
+                            >
+                              <span aria-hidden="true" className={`size-1.5 rounded-full ${status.dot}`} />
+                              {status.text}
+                            </span>
                             {key.expiresAt ? (
-                              <span className="block text-xs text-muted-foreground">
+                              <span className="num mt-1 block text-xs text-subtle-foreground">
                                 hạn {formatDate(key.expiresAt)}
                               </span>
                             ) : null}
                           </td>
-                          <td className="px-4 py-4 text-sm text-muted-foreground">
-                            {formatDate(key.lastUsedAt)}
+                          <td>
+                            <label className="sr-only" htmlFor={`rate-${key.id}`}>
+                              Giới hạn request/phút của {key.ownerName}
+                            </label>
+                            <select
+                              id={`rate-${key.id}`}
+                              value={key.rateLimitPerMinute}
+                              disabled={key.status !== "ACTIVE"}
+                              onChange={(event) => void handleRateLimit(key, Number(event.target.value))}
+                              className="num rounded-[var(--radius-sm)] border border-border bg-background px-2 py-1 text-xs text-foreground disabled:opacity-50"
+                            >
+                              {(GIOI_HAN.includes(key.rateLimitPerMinute)
+                                ? GIOI_HAN
+                                : [...GIOI_HAN, key.rateLimitPerMinute].sort((a, b) => a - b)
+                              ).map((value) => (
+                                <option key={value} value={value}>
+                                  {value}/phút
+                                </option>
+                              ))}
+                            </select>
                           </td>
-                          <td className="px-4 py-4">
-                            <div className="flex justify-end gap-2">
+                          <td className="num text-muted-foreground">{formatDate(key.lastUsedAt)}</td>
+                          <td>
+                            <div className="flex justify-end gap-1">
                               {key.status === "ACTIVE" ? (
-                                <Button variant="ghost" size="sm" onClick={() => setConfirmRevoke(key)}>
+                                <Button variant="outline" size="sm" onClick={() => setConfirmRevoke(key)}>
                                   <Ban aria-hidden="true" />
                                   Thu hồi
                                 </Button>
                               ) : null}
-                              <Button variant="danger" size="sm" onClick={() => setConfirmDelete(key)}>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="hover:bg-danger/10 hover:text-danger"
+                                onClick={() => setConfirmDelete(key)}
+                              >
                                 <Trash2 aria-hidden="true" />
-                                Xoá
+                                <span className="sr-only">Xoá khoá của {key.ownerName}</span>
                               </Button>
                             </div>
                           </td>
@@ -315,32 +381,38 @@ export default function AdminApiKeysPage() {
           </div>
 
           {loadError ? (
-            <ErrorState
-              message={loadError}
-              action={
-                <Button variant="outline" size="md" onClick={() => void load()}>
-                  Thử lại
-                </Button>
-              }
-            />
+            <div className="border-t border-border p-5">
+              <ErrorState
+                message={loadError}
+                action={
+                  <Button variant="outline" size="md" onClick={() => void load()}>
+                    Thử lại
+                  </Button>
+                }
+              />
+            </div>
           ) : null}
 
           {!loading && keys?.length === 0 ? (
-            <EmptyState
-              title="Chưa cấp khoá nào"
-              description="Cấp khoá đầu tiên ở biểu mẫu bên cạnh để đối tác gọi được /api/public/products."
-            />
+            <div className="border-t border-border">
+              <EmptyState
+                title="Chưa cấp khoá nào"
+                description="Cấp khoá đầu tiên ở biểu mẫu bên cạnh để đối tác gọi được /api/public/products."
+              />
+            </div>
           ) : null}
         </section>
 
-        <section aria-labelledby="key-form-heading" className="lg:sticky lg:top-28 lg:self-start">
-          <form onSubmit={handleSubmit} noValidate className="border border-border bg-surface p-6">
-            <h2 id="key-form-heading" className="display-lg text-foreground">
+        <section aria-labelledby="key-form-heading" className="lg:sticky lg:top-20 lg:self-start">
+          <form onSubmit={handleSubmit} noValidate className="card p-5">
+            <h2 id="key-form-heading" className="text-base text-foreground">
               Cấp khoá mới
             </h2>
-            <span aria-hidden="true" className="mt-4 block h-px w-16 bg-accent" />
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Khoá hiện một lần duy nhất sau khi cấp.
+            </p>
 
-            <div className="mt-7 space-y-6">
+            <div className="mt-5 space-y-4">
               <Field id="owner-name" label="Tên đối tác" error={ownerError} required>
                 {(props) => (
                   <Input
@@ -369,6 +441,18 @@ export default function AdminApiKeysPage() {
                 )}
               </Field>
 
+              <Field id="rate-limit" label="Giới hạn tần suất" hint="Vượt quá thì Gateway trả 429">
+                {(props) => (
+                  <NativeSelect {...props} value={rateLimit} onChange={(event) => setRateLimit(event.target.value)}>
+                    {GIOI_HAN.map((value) => (
+                      <option key={value} value={String(value)}>
+                        {value} request/phút
+                      </option>
+                    ))}
+                  </NativeSelect>
+                )}
+              </Field>
+
               <Field id="days-valid" label="Hạn dùng">
                 {(props) => (
                   <NativeSelect
@@ -386,7 +470,11 @@ export default function AdminApiKeysPage() {
               </Field>
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
+              <Button type="button" variant="outline" size="md" onClick={resetForm} disabled={saving}>
+                <RotateCcw aria-hidden="true" />
+                Làm mới
+              </Button>
               <Button type="submit" variant="primary" size="md" disabled={saving}>
                 {saving ? (
                   <>
@@ -399,10 +487,6 @@ export default function AdminApiKeysPage() {
                     Cấp khoá
                   </>
                 )}
-              </Button>
-              <Button type="button" variant="ghost" size="md" onClick={resetForm} disabled={saving}>
-                <RotateCcw aria-hidden="true" />
-                Làm mới
               </Button>
             </div>
           </form>
@@ -420,7 +504,7 @@ export default function AdminApiKeysPage() {
           }
           footer={
             <>
-              <Button variant="ghost" size="md" onClick={() => setConfirmRevoke(null)} disabled={working}>
+              <Button variant="outline" size="md" onClick={() => setConfirmRevoke(null)} disabled={working}>
                 Huỷ
               </Button>
               <Button variant="danger" size="md" onClick={handleRevoke} disabled={working}>
@@ -452,7 +536,7 @@ export default function AdminApiKeysPage() {
           }
           footer={
             <>
-              <Button variant="ghost" size="md" onClick={() => setConfirmDelete(null)} disabled={working}>
+              <Button variant="outline" size="md" onClick={() => setConfirmDelete(null)} disabled={working}>
                 Huỷ
               </Button>
               <Button variant="danger" size="md" onClick={handleDelete} disabled={working}>

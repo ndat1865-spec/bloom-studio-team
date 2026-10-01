@@ -7,11 +7,11 @@ import { Field, Input } from "@/components/ui/field";
 import { Notice } from "@/components/ui/feedback";
 import { AuthLayout } from "@/components/site/AuthLayout";
 import { useAuth } from "@/context/AuthContext";
-import { ApiError, NetworkError, api, TOKEN_KEY, clearStoredAuth } from "@/lib/api";
+import { ApiError, BACKOFFICE_ROLES, NetworkError, api, TOKEN_KEY, clearStoredAuth } from "@/lib/api";
 import { SHOP_APP_URL } from "@/lib/links";
 
 /**
- * Dang nhap cua app quan tri. Chi nhan tai khoan ADMIN: CUSTOMER dang nhap dung
+ * Dang nhap cua app quan tri. Nhan ADMIN va nhan vien (STAFF): CUSTOMER dang nhap dung
  * mat khau van bi tu choi o day va duoc chi sang giao dien khach hang.
  * Day chi la trai nghiem - quyen that van do backend kiem tra trong JWT.
  * Khong gia lap thanh cong o frontend: chi dieu huong khi backend tra 200.
@@ -27,7 +27,7 @@ export default function LoginPage() {
 
   // Da dang nhap roi thi khong o lai trang login
   useEffect(() => {
-    if (user?.role === "ADMIN") navigate("/admin", { replace: true });
+    if (user && BACKOFFICE_ROLES.includes(user.role)) navigate("/admin", { replace: true });
   }, [user, navigate]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -46,7 +46,7 @@ export default function LoginPage() {
       // auth-service khong tra ca ho so kem token nhu ban monolith - token chi
       // mang username, userId va role; ho so lay rieng bang GET /auth/me.
       const session = await api.login(username.trim(), password);
-      if (session.role !== "ADMIN") {
+      if (!BACKOFFICE_ROLES.includes(session.role)) {
         // Khong giu lai token cua CUSTOMER trong app quan tri
         clearStoredAuth();
         setFormError("Tài khoản này không có quyền quản trị. Hãy dùng giao diện khách hàng.");
@@ -73,11 +73,10 @@ export default function LoginPage() {
 
   return (
     <AuthLayout
-      eyebrow="Bloom Studio · Quản trị"
-      title="Welcome Back"
-      intro="Đăng nhập bằng tài khoản quản trị để quản lý hoa, danh mục, đơn hàng và khoá API."
+      title="Đăng nhập quản trị"
+      intro="Dùng tài khoản quản trị viên để vào bảng điều khiển."
       footer={
-        <p className="text-sm font-light text-muted-foreground">
+        <p className="text-center text-sm text-muted-foreground">
           Là khách hàng?{" "}
           <a
             href={SHOP_APP_URL}
@@ -88,7 +87,7 @@ export default function LoginPage() {
         </p>
       }
     >
-      <form onSubmit={handleSubmit} noValidate className="space-y-6">
+      <form onSubmit={handleSubmit} noValidate className="space-y-4">
         {formError ? <Notice tone="error">{formError}</Notice> : null}
 
         <Field id="username" label="Tên đăng nhập" error={errors.username} required>
@@ -125,7 +124,7 @@ export default function LoginPage() {
               Đang đăng nhập…
             </>
           ) : (
-            "Đăng nhập →"
+            "Đăng nhập"
           )}
         </Button>
       </form>
