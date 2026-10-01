@@ -22,9 +22,20 @@ Thử nhanh: http://localhost:8082/products · http://localhost:8082/categories
 | Method | Đường dẫn | Quyền |
 |---|---|---|
 | GET | `/products`, `/products/{id}`, `/categories`, `/categories/{id}/products` | Công khai |
+| GET | `/products?occasion=&color=&minPrice=&maxPrice=` | Công khai — lọc theo dịp, màu, giá |
+| GET | `/products/attributes` | Công khai — danh sách dịp và màu kèm nhãn tiếng Việt |
+| GET | `/products/{id}/reviews`, `/products/{id}/reviews/summary` | Công khai |
+| GET | `/products/{id}/reviews/eligibility` | Đã đăng nhập |
+| POST | `/products/{id}/reviews` | Đã đăng nhập **và đã nhận hàng** |
+| GET, PATCH, DELETE | `/reviews`, `/reviews/{id}/visibility`, `/reviews/{id}` | ADMIN |
 | POST, PUT, DELETE | `/products/**`, `/categories/**` | ADMIN |
 | POST | `/products/{id}/upload-image` | ADMIN |
 | PATCH | `/internal/products/{id}/reserve-stock`, `/release-stock` | Chỉ `order-service` gọi |
+
+Trước khi nhận đánh giá mới, service hỏi `order-service` qua
+`GET /internal/orders/purchase-check` (biến `ORDER_SERVICE_URL`, mặc định
+`http://localhost:8083`). Khi `order-service` tắt, gửi đánh giá trả 503.
+Dịp và màu của 20 hoa mẫu do `AttributeSeeder` gán từ `seed/thuoc-tinh-hoa.txt`.
 
 Danh sách đầy đủ: [docs/blueprint-api.md](../docs/blueprint-api.md).
 

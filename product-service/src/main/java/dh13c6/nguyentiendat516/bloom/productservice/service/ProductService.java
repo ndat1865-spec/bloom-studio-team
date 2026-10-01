@@ -1,12 +1,16 @@
 package dh13c6.nguyentiendat516.bloom.productservice.service;
 
 import dh13c6.nguyentiendat516.bloom.productservice.entity.Category;
+import dh13c6.nguyentiendat516.bloom.productservice.entity.FlowerColor;
+import dh13c6.nguyentiendat516.bloom.productservice.entity.Occasion;
 import dh13c6.nguyentiendat516.bloom.productservice.entity.Product;
 import dh13c6.nguyentiendat516.bloom.productservice.exception.BadRequestException;
 import dh13c6.nguyentiendat516.bloom.productservice.exception.ConflictException;
 import dh13c6.nguyentiendat516.bloom.productservice.exception.NotFoundException;
 import dh13c6.nguyentiendat516.bloom.productservice.repository.CategoryRepository;
 import dh13c6.nguyentiendat516.bloom.productservice.repository.ProductRepository;
+import dh13c6.nguyentiendat516.bloom.productservice.repository.ProductSpecifications;
+import dh13c6.nguyentiendat516.bloom.productservice.repository.ReviewRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,13 +33,16 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final FileStorageService fileStorageService;
+    private final ReviewRepository reviewRepository;
 
     public ProductService(ProductRepository productRepository,
                           CategoryRepository categoryRepository,
-                          FileStorageService fileStorageService) {
+                          FileStorageService fileStorageService,
+                          ReviewRepository reviewRepository) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.fileStorageService = fileStorageService;
+        this.reviewRepository = reviewRepository;
     }
 
     // ===================== DOC (ai cung xem duoc) =====================
@@ -50,24 +57,27 @@ public class ProductService {
 
     /**
      * SOS07 - Tim kiem theo ten + phan trang + sap xep.
-     * Bo sung tham so categoryId (tuy chon) cho bo loc danh muc o frontend.
-     * Ten phuong thuc nay duoc dung thong nhat o Controller (khong con searchProductsByName).
+     * Giu nguyen chu ky cu cho cac noi da goi (chi loc ten + danh muc).
      */
     public Page<Product> searchProducts(String name, Long categoryId, Pageable pageable) {
-        boolean hasName = name != null && !name.isBlank();
-        String keyword = hasName ? name.trim() : null;
+        return searchProducts(name, categoryId, null, null, null, null, pageable);
+    }
 
-        if (categoryId != null) {
-            if (!categoryRepository.existsById(categoryId)) {
-                throw new NotFoundException("Không tìm thấy danh mục id = " + categoryId);
-            }
-            return hasName
-                    ? productRepository.findByCategoryIdAndNameContainingIgnoreCase(categoryId, keyword, pageable)
-                    : productRepository.findByCategoryId(categoryId, pageable);
+    /**
+     * Tim kiem day du: ten, danh muc, dip, mau, khoang gia. Tham so nao null thi bo qua.
+     * Danh muc khong ton tai van tra 404 nhu truoc de client biet la loc sai.
+     */
+    public Page<Product> searchProducts(String name, Long categoryId, Occasion occasion, FlowerColor color,
+                                        Double minPrice, Double maxPrice, Pageable pageable) {
+        if (categoryId != null && !categoryRepository.existsById(categoryId)) {
+            throw new NotFoundException("Không tìm thấy danh mục id = " + categoryId);
         }
-        return hasName
-                ? productRepository.findByNameContainingIgnoreCase(keyword, pageable)
-                : productRepository.findAll(pageable);
+        if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
+            throw new BadRequestException("Giá thấp nhất không được lớn hơn giá cao nhất");
+        }
+        return productRepository.findAll(
+                ProductSpecifications.matching(name, categoryId, occasion, color, minPrice, maxPrice),
+                pageable);
     }
 
     /** SOS05 - Lay san pham theo danh muc (khong phan trang). */
@@ -82,6 +92,9 @@ public class ProductService {
 
     public Product createProduct(Product product) {
         product.setId(null);
+        // Diem danh gia chi do ReviewService tinh, khong nhan tu body
+        product.setRatingAverage(null);
+        product.setRatingCount(0);
         product.setCategory(resolveCategory(product.getCategory()));
         return productRepository.save(product);
     }
@@ -92,6 +105,12 @@ public class ProductService {
             product.setName(updatedProduct.getName());
             product.setPrice(updatedProduct.getPrice());
             product.setDescription(updatedProduct.getDescription());
+            product.setOccasions(updatedProduct.getOccasions());
+            product.setColor(updatedProduct.getColor());
+            product.setComposition(updatedProduct.getComposition());
+            product.setStemCount(updatedProduct.getStemCount());
+            product.setSized(updatedProduct.isSized());
+            product.setLeadDays(updatedProduct.getLeadDays());
             // Khong chon anh moi -> giu nguyen anh cu
             if (updatedProduct.getImageUrl() != null && !updatedProduct.getImageUrl().isBlank()) {
                 product.setImageUrl(updatedProduct.getImageUrl());
@@ -104,8 +123,11 @@ public class ProductService {
         });
     }
 
+    @Transactional
     public boolean deleteProduct(Long id) {
         if (productRepository.existsById(id)) {
+            // Danh gia tro toi san pham bang khoa ngoai -> xoa truoc, neu khong MySQL chan lenh xoa
+            reviewRepository.deleteByProductId(id);
             productRepository.deleteById(id);
             return true;
         }
@@ -116,6 +138,8 @@ public class ProductService {
     public Optional<Product> createProductInCategory(Long categoryId, Product product) {
         return categoryRepository.findById(categoryId).map(category -> {
             product.setId(null);
+            product.setRatingAverage(null);
+            product.setRatingCount(0);
             product.setCategory(category);
             return productRepository.save(product);
         });

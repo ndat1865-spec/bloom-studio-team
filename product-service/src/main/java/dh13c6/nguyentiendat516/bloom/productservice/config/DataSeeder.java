@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -30,6 +31,7 @@ import java.util.regex.Pattern;
  * Chi chay khi bang rong, nen may da co du lieu that thi khong bi dung toi.
  */
 @Component
+@Order(1)
 public class DataSeeder implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
