@@ -1,6 +1,7 @@
 package dh13c6.nguyentiendat516.bloom.orderservice.exception;
 
 import dh13c6.nguyentiendat516.bloom.orderservice.dto.ApiError;
+import dh13c6.nguyentiendat516.bloom.orderservice.shipping.GhnException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -20,7 +21,8 @@ import java.util.Map;
  * - 400: sai kieu du lieu / vi pham validation
  * - 403: khong du quyen (SecurityException nem tu tang Service - SOS06)
  * - 404: khong tim thay
- * - 409: xung dot du lieu
+ * - 409: xung dot du lieu, GHN tu choi yeu cau
+ * - 503: GHN khong phan hoi / chua cau hinh
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -84,5 +86,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiError> handleConflict(ConflictException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ApiError.of(409, "Conflict", ex.getMessage()));
+    }
+
+    /** GHN tu choi (dia chi khong ho tro, van don da lay hang...) - loi nghiep vu. */
+    @ExceptionHandler(GhnException.class)
+    public ResponseEntity<ApiError> handleGhn(GhnException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiError.of(409, "Conflict", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<ApiError> handleUnavailable(ServiceUnavailableException ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ApiError.of(503, "Service Unavailable", ex.getMessage()));
     }
 }

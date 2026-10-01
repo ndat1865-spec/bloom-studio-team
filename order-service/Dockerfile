@@ -17,8 +17,10 @@ RUN sh ./mvnw -B -q clean package -DskipTests
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 
-# Khong chay bang root trong container.
-RUN useradd --system --create-home --uid 10001 bloom
+# Khong chay bang root trong container. Tao san thu muc anh va chown TRUOC khi volume gan
+# vao: Docker chep quyen cua diem gan sang volume moi (con rong), neu khong volume thuoc root
+# va ung dung khong ghi duoc anh.
+RUN useradd --system --create-home --uid 10001 bloom && mkdir -p /var/bloom/order-media && chown -R bloom:bloom /var/bloom
 USER bloom
 
 COPY --from=build --chown=bloom:bloom /build/target/*.jar app.jar

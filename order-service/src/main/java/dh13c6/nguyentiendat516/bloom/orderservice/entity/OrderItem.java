@@ -46,7 +46,43 @@ public class OrderItem {
     @Column(name = "line_total", nullable = false)
     private Double lineTotal;
 
+    /** Ma co bo (SMALL / STANDARD / LARGE). Null o don cu va dong hoa theo yeu cau. */
+    @Column(name = "size", length = 10)
+    private String size;
+
+    /** Nhan co bo chup luc dat, kem so bong - vd. "Lớn · 23 bông". */
+    @Column(name = "size_label", length = 60)
+    private String sizeLabel;
+
+    /** Dong hoa dat theo yeu cau: id yeu cau (khi do productId = null). */
+    @Column(name = "custom_request_id")
+    private Long customRequestId;
+
     public OrderItem() {
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
+
+    public String getSizeLabel() {
+        return sizeLabel;
+    }
+
+    public void setSizeLabel(String sizeLabel) {
+        this.sizeLabel = sizeLabel;
+    }
+
+    public Long getCustomRequestId() {
+        return customRequestId;
+    }
+
+    public void setCustomRequestId(Long customRequestId) {
+        this.customRequestId = customRequestId;
     }
 
     public Long getId() {

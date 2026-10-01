@@ -2,6 +2,8 @@ package dh13c6.nguyentiendat516.bloom.orderservice.client;
 
 import dh13c6.nguyentiendat516.bloom.orderservice.exception.ConflictException;
 import dh13c6.nguyentiendat516.bloom.orderservice.exception.NotFoundException;
+import dh13c6.nguyentiendat516.bloom.orderservice.exception.ServiceUnavailableException;
+import dh13c6.nguyentiendat516.bloom.orderservice.resilience.CircuitOpenException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,6 +66,10 @@ public class ProductClient {
             throw new ConflictException("product-service từ chối yêu cầu: " + ex.getStatusCode());
 
         } catch (ResourceAccessException ex) {
+            if (ex.getCause() instanceof CircuitOpenException open) {
+                // Mach dang mo: tu choi ngay, khong doi timeout
+                throw new ServiceUnavailableException(open.getMessage());
+            }
             // product-service tat han hoac qua timeout
             log.error("Không kết nối được product-service tại {}", url, ex);
             throw new ConflictException("Không thể kết nối tới product-service, vui lòng thử lại sau");

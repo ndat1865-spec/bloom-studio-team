@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 
 /** Body cua PUT /api/orders/{id}/status. */
 public record UpdateOrderStatusRequest(
-        @NotNull(message = "Trạng thái phải là PENDING, CONFIRMED, DELIVERED hoặc CANCELLED")
+        @NotNull(message = "Trạng thái phải là PENDING, CONFIRMED, PREPARING, SHIPPING, DELIVERED hoặc CANCELLED")
         OrderStatus status
 ) {
 }
