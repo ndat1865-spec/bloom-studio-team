@@ -81,7 +81,7 @@ bloom-studio-team/
 ├── customer-frontend/   # Ngân — cửa hàng, giỏ hàng, thanh toán, tài khoản
 ├── admin-frontend/      # Thu — tổng quan, quản lý hoa/danh mục/đơn/khoá API
 ├── database/            # Đạt — script chuyển dữ liệu từ bản monolith
-├── docs/                # Thiết kế, API, hướng dẫn chạy, biên bản kiểm thử
+├── docs/                # Thiết kế, API, hướng dẫn chạy, biên bản kiểm thử, bộ Postman (docs/postman)
 ├── docker-compose.yml   # Đạt — 7 service + 6 MySQL + RabbitMQ + Mailpit
 └── .env.example         # Mẫu biến môi trường cho Docker Compose
 ```
