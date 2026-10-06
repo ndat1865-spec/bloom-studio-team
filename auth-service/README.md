@@ -1,6 +1,6 @@
 # auth-service — Xác thực và người dùng
 
-Phụ trách: **Nguyễn Tiến Đạt** · Cổng **8081** · CSDL `bloom_auth`
+Phụ trách: **Trần Thị Mỹ Ngân** · Cổng **8081** · CSDL `bloom_auth`
 
 Giữ tài khoản người dùng, băm mật khẩu bằng BCrypt, ký JWT, và quản lý API Key của đối tác.
 Hai service nghiệp vụ còn lại **không gọi sang đây** để kiểm tra token: chúng dùng chung

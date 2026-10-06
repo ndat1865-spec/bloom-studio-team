@@ -12,11 +12,11 @@ Mỗi thành viên phát triển trên nhánh riêng và ghép vào `main` qua p
 
 | Thành viên | Phụ trách | Thư mục | Cổng |
 |---|---|---|---|
-| Nguyễn Tiến Đạt (nhóm trưởng) | Xác thực, API Gateway, bảo mật, tích hợp, thanh toán, thông báo, chat + trợ lý AI, Docker | `auth-service/`, `api-gateway/`, `payment-service/`, `notification-service/`, `chat-service/`, `database/`, `docs/` | 8081, 8080, 8084, 8085, 8086 |
-| Hoàng Tuấn Anh | Product Service | `product-service/` | 8082 |
-| Lê Ngọc Bình Minh | Order Service | `order-service/` | 8083 |
-| Trần Thị Mỹ Ngân | Giao diện khách hàng | `customer-frontend/` | 5173 |
-| Nguyễn Ngọc Minh Thu | Giao diện quản trị | `admin-frontend/` | 5174 |
+| Nguyễn Tiến Đạt (nhóm trưởng) | Thanh toán, thông báo, chat + trợ lý AI, Docker | `payment-service/`, `notification-service/`, `chat-service/`, `database/`, `docs/` | 8084, 8085, 8086 |
+| Hoàng Tuấn Anh | Sản phẩm, danh mục, tồn kho, đánh giá | `product-service/` | 8082 |
+| Lê Ngọc Bình Minh | Đơn hàng, đặt hàng, mã giảm giá, GHN | `order-service/` | 8083 |
+| Trần Thị Mỹ Ngân | Xác thực + giao diện khách hàng | `auth-service/`, `customer-frontend/` | 8081, 5173 |
+| Nguyễn Ngọc Minh Thu | API Gateway + giao diện quản trị | `api-gateway/`, `admin-frontend/` | 8080, 5174 |
 
 Mỗi thư mục có `README.md` riêng: phần đó làm gì, chạy thế nào, file nào quan trọng.
 
@@ -71,8 +71,8 @@ Chi tiết: [Ranh giới service](docs/thiet-ke-bien-gioi-service.md) ·
 
 ```
 bloom-studio-team/
-├── auth-service/        # Đạt — JWT, BCrypt, người dùng, API Key
-├── api-gateway/         # Đạt — định tuyến, CORS, kiểm tra API Key
+├── auth-service/        # Ngân — JWT, BCrypt, người dùng, API Key
+├── api-gateway/         # Thu — định tuyến, CORS, kiểm tra API Key
 ├── product-service/     # Tuấn Anh — hoa, danh mục, ảnh, tồn kho
 ├── order-service/       # Bình Minh — đặt hàng, trạng thái đơn, thống kê, giao hàng GHN
 ├── payment-service/     # Đạt — VNPay, MoMo, ZaloPay
