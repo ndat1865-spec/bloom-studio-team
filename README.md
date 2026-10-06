@@ -302,8 +302,9 @@ React 19 + Vite 6 + Tailwind 4
 
 ## Quy ước làm việc chung
 
-- Cập nhật `main` trước khi tạo nhánh: `git switch main`, `git pull`.
-- Tên nhánh theo chức năng: `feat/product-search`, `fix/auth-login`, `docs/readme`.
+- Mỗi người làm trên **nhánh mang tên mình** (`nguyen-tien-dat`, `hoang-tuan-anh`, `le-ngoc-binh-minh`,
+  `tran-thi-my-ngan`, `nguyen-ngoc-minh-thu`), lấy code mới bằng `git merge origin/main`. Các bước
+  chi tiết: [docs/huong-dan-lam-tren-nhanh.md](docs/huong-dan-lam-tren-nhanh.md).
 - Commit: `feat(<service>): ...`, `fix(<service>): ...`, `docs: ...` — tiếng Việt không dấu.
 - Chỉ sửa thư mục mình phụ trách. Cần đổi API của người khác thì trao đổi trước và cập nhật
   `docs/blueprint-api.md`.
@@ -312,4 +313,4 @@ React 19 + Vite 6 + Tailwind 4
 - Mọi định danh lấy từ JWT, không bao giờ tin `userId`/`role` do client gửi.
 - Không commit `target/`, `node_modules/`, `dist/`, `.env`, `.idea/`, thư mục `uploads/` lúc chạy.
 - Biên dịch sạch chưa chắc chạy được: sửa xong phải khởi động thật và gọi thử API.
-- Push nhánh, tạo pull request vào `main`, người khác xem rồi mới merge.
+- Push nhánh của mình, tạo pull request vào `main`, nhóm trưởng xem rồi mới merge.
