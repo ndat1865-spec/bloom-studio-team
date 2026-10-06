@@ -314,7 +314,8 @@ hiệu — nguyên tắc Zero Trust thu nhỏ.
 
 | Thành phần | Phụ trách | Ghi chú |
 |---|---|---|
-| `auth-service` + `api-gateway` | Nguyễn Tiến Đạt | Phần mới hoàn toàn: JWT, BCrypt, routing, API Key, CORS |
+| `auth-service` | Trần Thị Mỹ Ngân | Phần mới hoàn toàn: JWT, BCrypt, đăng nhập Google, quản lý API Key |
+| `api-gateway` | Nguyễn Ngọc Minh Thu | Phần mới hoàn toàn: routing, CORS, kiểm tra API Key, giới hạn tần suất |
 | `payment-service` | Nguyễn Tiến Đạt | VNPay, MoMo, ZaloPay (thanh toán + hoàn tiền); GHN trong `order-service` |
 | `notification-service` | Nguyễn Tiến Đạt | RabbitMQ, email; circuit breaker, giới hạn tần suất API Key |
 | `product-service` | Hoàng Tuấn Anh | Chuyển từ monolith, nhiều code sẵn nhất |

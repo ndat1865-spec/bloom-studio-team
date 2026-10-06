@@ -1,6 +1,6 @@
 # api-gateway — Điểm vào duy nhất
 
-Phụ trách: **Nguyễn Tiến Đạt** · Cổng **8080** · Không có CSDL
+Phụ trách: **Nguyễn Ngọc Minh Thu** · Cổng **8080** · Không có CSDL
 
 Hai frontend và đối tác chỉ gọi vào đây. Gateway định tuyến `/api/**` sang 3 service phía
 sau, khai CORS cho hai frontend, và kiểm tra API Key cho route đối tác `/api/public/**`.

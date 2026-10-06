@@ -188,6 +188,10 @@ token thì phải bị từ chối.
 
 ## 4. Kịch bản test bằng Postman
 
+> Bộ Postman dựng sẵn cho **toàn bộ** API (210 request, có test tự kiểm) nằm ở `docs/postman/` —
+> import `Bloom-Studio.postman_collection.json` rồi *Run collection*, xem `docs/postman/README.md`.
+> Phần dưới đây là các bước gõ tay để hiểu từng request.
+
 Tạo Collection tên `Bloom Microservices`. **Mọi request đều gọi cổng 8080**, không gọi
 thẳng 8081/8082/8083 nữa.
 

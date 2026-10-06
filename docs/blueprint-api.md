@@ -347,7 +347,7 @@ hộp thư giả lập **Mailpit** (http://localhost:8025), không ra Internet.
 | GET | `/chat/conversations/summary` | Số cuộc chat theo trạng thái | ADMIN, STAFF |
 | GET | `/chat/conversations/{id}?afterId=` | Nội dung cuộc chat; xoá số chưa đọc của nhân viên | ADMIN, STAFF |
 | POST | `/chat/conversations/{id}/messages` | Nhân viên trả lời → `WITH_STAFF`, AI dừng; cuộc đã đóng → 409 | ADMIN, STAFF |
-| POST | `/chat/conversations/{id}/return-to-ai` | Trả cuộc chat cho trợ lý AI; chưa cấu hình AI → 409 | ADMIN, STAFF |
+| POST | `/chat/conversations/{id}/return-to-ai` | Trả cuộc chat cho trợ lý tự động (bot kịch bản luôn có, Claude khi có khoá) → `AI`; cuộc đã đóng → 409 | ADMIN, STAFF |
 | POST | `/chat/conversations/{id}/close` | Kết thúc; khách nhắn tiếp sẽ mở cuộc mới | ADMIN, STAFF |
 
 Không có id cuộc chat trên URL của khách: chủ cuộc chat lấy từ JWT, khách không đổi số để đọc
@@ -391,8 +391,8 @@ bước. Công cụ — đều là lời gọi API chỉ đọc:
 | `handoff_to_staff` | chuyển cuộc chat sang `WAITING_STAFF` |
 
 System prompt và danh sách công cụ cố định (không chèn ngày giờ) để dùng prompt caching; "hôm nay"
-AI tự hỏi qua `get_delivery_rules`. Thiếu `ANTHROPIC_API_KEY` → `aiEnabled: false`, cuộc chat mới
-vào thẳng `WAITING_STAFF`.
+AI tự hỏi qua `get_delivery_rules`. Thiếu `ANTHROPIC_API_KEY` → `aiEnabled: false`: cuộc chat mới
+vẫn bắt đầu ở `AI` nhưng chỉ bot kịch bản trả lời (cả nút bấm lẫn câu gõ tay).
 
 ## auth-service — API nội bộ bổ sung
 
